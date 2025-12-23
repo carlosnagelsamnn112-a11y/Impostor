@@ -820,7 +820,7 @@ socket.on("impostorRevelado", (data) => {
 
     // Mostrar palabra revelada
     if (data.palabra) {
-        document.getElementById("palabraReveladaTexto").textContent = data.palabra;
+        document.getElementById("palabraReveladaTextoMultijugador").textContent = data.palabra;
         document.getElementById("palabraReveladaMultijugador").classList.remove("hidden");
     }
 
