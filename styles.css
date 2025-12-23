@@ -1,0 +1,672 @@
+* {
+  box-sizing: border-box;
+  font-family: 'Segoe UI', 'Arial', sans-serif;
+}
+
+body {
+  margin: 0;
+  min-height: 100vh;
+  background: #0a0a0a;
+  color: white;
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
+  padding: 15px;
+  font-family: 'Segoe UI', 'Roboto', sans-serif;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.hidden {
+  display: none !important;
+}
+
+.screen {
+  width: 100%;
+  max-width: 500px;
+  background: #111111;
+  border-radius: 12px;
+  padding: 20px;
+  text-align: center;
+  margin: 10px 0;
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.8);
+  border: 1px solid #333333;
+  position: relative;
+  overflow: hidden;
+}
+
+/* Efecto futurista de borde */
+.screen::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 2px;
+  background: linear-gradient(90deg, transparent, #444, transparent);
+}
+
+.titulo-app {
+  font-size: 28px;
+  margin-top: 0;
+  margin-bottom: 25px;
+  color: white;
+  font-weight: 300;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+}
+
+button {
+  background: #222222;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  padding: 15px 20px;
+  margin: 8px 0;
+  cursor: pointer;
+  font-weight: 500;
+  font-size: 16px;
+  transition: all 0.2s;
+  width: 100%;
+  border: 1px solid #333;
+  position: relative;
+  overflow: hidden;
+  touch-action: manipulation;
+}
+
+button:hover {
+  background: #2a2a2a;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
+}
+
+button:active {
+  transform: translateY(0);
+}
+
+button:disabled {
+  background: #1a1a1a;
+  color: #666;
+  cursor: not-allowed;
+  transform: none;
+  box-shadow: none;
+  border-color: #222;
+}
+
+.btn-atras {
+  background: #1a1a1a;
+  color: #ccc;
+  border: 1px solid #333;
+  padding: 10px 15px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 14px;
+  min-width: 70px;
+  font-weight: 400;
+  width: auto;
+  margin: 0;
+}
+
+.btn-atras:hover {
+  background: #222;
+  color: white;
+}
+
+.card.opcion {
+  background: #1a1a1a;
+  padding: 18px;
+  border-radius: 10px;
+  margin: 12px 0;
+  cursor: pointer;
+  transition: all 0.2s;
+  border: 1px solid #333;
+  text-align: left;
+}
+
+.card.opcion:hover {
+  background: #222;
+  border-color: #444;
+  transform: translateY(-3px);
+}
+
+.card.opcion h3 {
+  margin-top: 0;
+  color: white;
+  font-weight: 500;
+  font-size: 18px;
+  margin-bottom: 5px;
+}
+
+.card.opcion p {
+  color: #aaa;
+  margin-bottom: 0;
+  font-size: 14px;
+}
+
+.configuracion {
+  margin: 20px 0;
+  text-align: left;
+}
+
+.configuracion label {
+  display: block;
+  margin-bottom: 8px;
+  font-weight: 500;
+  color: #ccc;
+  font-size: 15px;
+}
+
+.select-config {
+  width: 100%;
+  padding: 14px;
+  border-radius: 8px;
+  border: 1px solid #333;
+  background: #1a1a1a;
+  color: white;
+  font-size: 16px;
+  transition: all 0.2s;
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  appearance: none;
+}
+
+.select-config:focus {
+  outline: none;
+  border-color: #555;
+  background: #222;
+}
+
+.nota {
+  font-size: 12px;
+  color: #777;
+  margin-top: 5px;
+  margin-left: 5px;
+  font-style: italic;
+}
+
+.row {
+  margin-top: 25px;
+  display: flex;
+  gap: 12px;
+  justify-content: center;
+  flex-wrap: wrap;
+}
+
+.row-buttons {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin-top: 25px;
+}
+
+.jugador-input {
+  margin: 15px 0;
+  padding: 15px;
+  background: #1a1a1a;
+  border-radius: 8px;
+  border: 1px solid #333;
+}
+
+.jugador-numero {
+  color: #ccc;
+  margin-bottom: 8px;
+  font-weight: 500;
+  text-align: left;
+  font-size: 15px;
+}
+
+.jugador-input input {
+  width: 100%;
+  padding: 14px;
+  border-radius: 8px;
+  border: 1px solid #333;
+  background: #222;
+  color: white;
+  font-size: 16px;
+  transition: all 0.2s;
+}
+
+.jugador-input input:focus {
+  outline: none;
+  border-color: #555;
+  background: #2a2a2a;
+}
+
+.jugador-lista {
+  padding: 12px;
+  border-bottom: 1px solid #222;
+  text-align: left;
+  display: flex;
+  align-items: center;
+  font-size: 15px;
+  color: #ddd;
+  line-height: 1.4;
+}
+
+.jugador-lista:last-child {
+  border-bottom: none;
+}
+
+.creador-indicator {
+  color: #00ccff;
+  font-size: 12px;
+  margin-left: 8px;
+  background: rgba(0, 204, 255, 0.1);
+  padding: 2px 6px;
+  border-radius: 4px;
+  font-weight: 500;
+}
+
+.palabra-display {
+  font-size: 36px;
+  font-weight: 300;
+  margin: 25px 0;
+  padding: 20px;
+  border-radius: 10px;
+  background: #1a1a1a;
+  border: 2px solid #333;
+  min-height: 110px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  letter-spacing: 1px;
+  word-break: break-word;
+  line-height: 1.2;
+}
+
+.palabra-inocente {
+  color: white;
+  border-color: #444;
+  background: #1a1a1a;
+}
+
+.palabra-impostor {
+  color: #ff3333;
+  border-color: #ff3333;
+  background: rgba(255, 51, 51, 0.05);
+  font-weight: 500;
+}
+
+.nombre-jugador-display {
+  font-size: 28px;
+  color: white;
+  margin: 18px 0;
+  text-align: center;
+  font-weight: 300;
+  word-break: break-word;
+}
+
+.info-jugador {
+  margin: 20px 0;
+  padding: 18px;
+  background: #1a1a1a;
+  border-radius: 10px;
+  border: 1px solid #333;
+}
+
+.info-detalle {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-top: 18px;
+}
+
+.info-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 10px 0;
+  border-bottom: 1px solid #222;
+  flex-wrap: wrap;
+}
+
+.info-item:last-child {
+  border-bottom: none;
+}
+
+.info-label {
+  color: #aaa;
+  font-size: 15px;
+  margin-right: 10px;
+}
+
+.info-valor {
+  color: white;
+  font-weight: 500;
+  font-size: 16px;
+}
+
+.impostor-info {
+  font-size: 22px;
+  color: #ff3333;
+  font-weight: 500;
+  margin: 20px 0;
+  padding: 18px;
+  background: rgba(255, 51, 51, 0.05);
+  border-radius: 10px;
+  border: 2px solid #ff3333;
+  text-align: center;
+}
+
+.impostor-titulo {
+  font-size: 16px;
+  color: #ff6666;
+  margin-bottom: 10px;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  font-weight: 400;
+}
+
+.impostor-nombre {
+  font-size: 28px;
+  color: #ff3333;
+  font-weight: 500;
+  word-break: break-word;
+}
+
+.revelar-container {
+  margin: 25px 0;
+  padding: 18px;
+  background: #1a1a1a;
+  border-radius: 10px;
+  border: 1px solid #333;
+}
+
+.modal-salida {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.95);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+  backdrop-filter: blur(3px);
+  padding: 15px;
+}
+
+.modal-box {
+  background: #111;
+  padding: 25px;
+  border-radius: 12px;
+  text-align: center;
+  max-width: 400px;
+  width: 100%;
+  border: 1px solid #333;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.9);
+}
+
+.modal-buttons {
+  display: flex;
+  gap: 12px;
+  justify-content: center;
+  margin-top: 20px;
+}
+
+.modal-buttons button {
+  flex: 1;
+  min-width: 120px;
+}
+
+input[type="text"] {
+  width: 100%;
+  padding: 14px;
+  margin: 12px 0;
+  border-radius: 8px;
+  border: 1px solid #333;
+  background: #1a1a1a;
+  color: white;
+  font-size: 16px;
+  transition: all 0.2s;
+}
+
+input[type="text"]:focus {
+  outline: none;
+  border-color: #555;
+  background: #222;
+}
+
+input[type="text"]::placeholder {
+  color: #666;
+}
+
+/* Header styling para pantallas */
+.header-container {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 20px;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.header-title {
+  flex: 1;
+  text-align: center;
+  margin: 0;
+  color: white;
+  font-size: 20px;
+}
+
+/* Estilos para la dificultad */
+.dificultad-facil {
+  color: #4CAF50;
+  font-weight: 500;
+}
+
+.dificultad-medio {
+  color: #FF9800;
+  font-weight: 500;
+}
+
+.dificultad-dificil {
+  color: #F44336;
+  font-weight: 500;
+}
+
+/* Mejorar visualización de configuración */
+.config-resumen-item {
+  margin-bottom: 8px;
+  padding: 5px 0;
+  border-bottom: 1px solid #222;
+}
+
+.config-resumen-item:last-child {
+  border-bottom: none;
+}
+
+/* Responsive improvements */
+@media (min-width: 768px) {
+  body {
+      align-items: center;
+      padding: 20px;
+  }
+
+  .screen {
+      padding: 25px;
+      margin: 10px auto;
+  }
+
+  button {
+      width: auto;
+      min-width: 150px;
+      margin: 10px 5px;
+  }
+
+  .btn-atras {
+      min-width: 80px;
+  }
+
+  .row-buttons {
+      flex-direction: row;
+      justify-content: center;
+  }
+
+  .row-buttons button {
+      min-width: 180px;
+  }
+
+  .modal-buttons button {
+      min-width: 140px;
+  }
+
+  .titulo-app {
+      font-size: 32px;
+      margin-bottom: 30px;
+  }
+
+  .palabra-display {
+      font-size: 42px;
+      padding: 25px;
+      min-height: 120px;
+  }
+
+  .nombre-jugador-display {
+      font-size: 32px;
+  }
+
+  .impostor-nombre {
+      font-size: 32px;
+  }
+
+  .impostor-titulo {
+      font-size: 18px;
+  }
+
+  .header-title {
+      font-size: 22px;
+  }
+}
+
+/* Para pantallas muy pequeñas */
+@media (max-width: 360px) {
+  .screen {
+      padding: 15px;
+      border-radius: 10px;
+  }
+
+  .titulo-app {
+      font-size: 24px;
+      margin-bottom: 20px;
+  }
+
+  .palabra-display {
+      font-size: 28px;
+      padding: 15px;
+      min-height: 90px;
+      margin: 20px 0;
+  }
+
+  button {
+      padding: 14px 16px;
+      font-size: 15px;
+  }
+
+  .btn-atras {
+      padding: 8px 12px;
+      font-size: 13px;
+      min-width: 60px;
+  }
+
+  .nombre-jugador-display {
+      font-size: 24px;
+      margin: 15px 0;
+  }
+
+  .impostor-nombre {
+      font-size: 24px;
+  }
+
+  .card.opcion {
+      padding: 15px;
+  }
+
+  .card.opcion h3 {
+      font-size: 16px;
+  }
+
+  .card.opcion p {
+      font-size: 13px;
+  }
+
+  .info-jugador,
+  .revelar-container,
+  .jugador-input {
+      padding: 15px;
+  }
+
+  .header-title {
+      font-size: 18px;
+  }
+
+  .info-detalle .info-item {
+      flex-direction: column;
+      align-items: flex-start;
+      gap: 5px;
+  }
+
+  .info-detalle .info-label {
+      margin-right: 0;
+      font-size: 14px;
+  }
+
+  .info-detalle .info-valor {
+      font-size: 15px;
+  }
+}
+
+/* Animación sutil para elementos interactivos */
+@keyframes pulse {
+  0% { opacity: 1; }
+  50% { opacity: 0.8; }
+  100% { opacity: 1; }
+}
+
+button:focus, .card.opcion:focus {
+  animation: pulse 1.5s infinite;
+}
+
+/* Mejorar la experiencia táctil */
+@media (hover: none) and (pointer: coarse) {
+  button:hover {
+      transform: none;
+      background: #222222;
+  }
+
+  .card.opcion:hover {
+      transform: none;
+      background: #1a1a1a;
+  }
+
+  button:active {
+      background: #2a2a2a;
+      transform: scale(0.98);
+  }
+
+  .card.opcion:active {
+      background: #222;
+      transform: scale(0.98);
+  }
+}
+
+/* Efecto de carga */
+.cargando {
+  position: relative;
+  color: transparent;
+}
+
+.cargando::after {
+  content: '';
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  width: 20px;
+  height: 20px;
+  border: 2px solid #333;
+  border-top-color: white;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  to { transform: translate(-50%, -50%) rotate(360deg); }
+}
