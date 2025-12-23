@@ -564,8 +564,8 @@ function asignarRolesAleatorios(sala) {
 
 /* ----- INICIAR SERVIDOR ----- */
 const PORT = process.env.PORT || 5000;
-http.listen(PORT, "0.0.0.0", () => {
-    console.log(`Servidor escuchando en http://0.0.0.0:${PORT}`);
+http.listen(PORT, () => {
+    console.log(`Servidor listo en puerto ${PORT}`);
     console.log("Juego del Impostor - Multijugador");
     console.log("Categorías con dificultad: Países, Futbolistas, Cantantes");
     console.log("Categorías sin dificultad: Objetos, Animales, Personas, Clash Royale");
