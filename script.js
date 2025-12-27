@@ -1,672 +1,916 @@
-* {
-  box-sizing: border-box;
-  font-family: 'Segoe UI', 'Arial', sans-serif;
-}
-
-body {
-  margin: 0;
-  min-height: 100vh;
-  background: #0a0a0a;
-  color: white;
-  display: flex;
-  justify-content: center;
-  align-items: flex-start;
-  padding: 15px;
-  font-family: 'Segoe UI', 'Roboto', sans-serif;
-  -webkit-tap-highlight-color: transparent;
-}
-
-.hidden {
-  display: none !important;
-}
-
-.screen {
-  width: 100%;
-  max-width: 500px;
-  background: #111111;
-  border-radius: 12px;
-  padding: 20px;
-  text-align: center;
-  margin: 10px 0;
-  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.8);
-  border: 1px solid #333333;
-  position: relative;
-  overflow: hidden;
-}
-
-/* Efecto futurista de borde */
-.screen::before {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  height: 2px;
-  background: linear-gradient(90deg, transparent, #444, transparent);
-}
-
-.titulo-app {
-  font-size: 28px;
-  margin-top: 0;
-  margin-bottom: 25px;
-  color: white;
-  font-weight: 300;
-  letter-spacing: 1px;
-  text-transform: uppercase;
-}
-
-button {
-  background: #222222;
-  color: white;
-  border: none;
-  border-radius: 8px;
-  padding: 15px 20px;
-  margin: 8px 0;
-  cursor: pointer;
-  font-weight: 500;
-  font-size: 16px;
-  transition: all 0.2s;
-  width: 100%;
-  border: 1px solid #333;
-  position: relative;
-  overflow: hidden;
-  touch-action: manipulation;
-}
-
-button:hover {
-  background: #2a2a2a;
-  transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
-}
-
-button:active {
-  transform: translateY(0);
-}
-
-button:disabled {
-  background: #1a1a1a;
-  color: #666;
-  cursor: not-allowed;
-  transform: none;
-  box-shadow: none;
-  border-color: #222;
-}
-
-.btn-atras {
-  background: #1a1a1a;
-  color: #ccc;
-  border: 1px solid #333;
-  padding: 10px 15px;
-  border-radius: 6px;
-  cursor: pointer;
-  font-size: 14px;
-  min-width: 70px;
-  font-weight: 400;
-  width: auto;
-  margin: 0;
-}
+const socket = io();
+
+let nombreJugador = "";
+let salaActual = null;
+let categoriaActual = "";
+let dificultadActual = "";
+let miRol = null;
+let soyCreador = false;
+let palabraActualMultijugador = "";  // NUEVA VARIABLE
+
+let configLocal = {
+    jugadores: [],
+    categoria: "Objetos",
+    dificultad: "Fácil",
+    impostores: 1,
+    maxJugadores: 4,
+    palabraActual: "",
+    jugadorActual: 0,
+    roles: [],
+    impostoresIndices: []
+};
+
+let configGuardada = null;
+
+function ocultarTodas() {
+    document.querySelectorAll(".screen").forEach(s => s.classList.add("hidden"));
+    document.getElementById("confirmModal").classList.add("hidden");
+}
+
+function mostrar(id) {
+    ocultarTodas();
+    document.getElementById(id).classList.remove("hidden");
+}
+
+function generarPalabraLocal(categoria, dificultad) {
+    const palabras = {
+        Objetos: ["Agenda", "Alfombra", "Almohada", "Altavoz", "Antena", "Archivador", "Arena", "Armario", "Asiento", "Audífonos"],
+        Animales: ["Abeja", "Águila", "Alce", "Anaconda", "Anguila", "Araña", "Ardilla", "Armadillo", "Atún", "Avestruz"],
+        Personas: ["Catalina Puerto", "Ana Maria", "Katerin Cardona", "Maleja", "Katerin Becerra"],
+        Países: {
+            "Fácil": ["Alemania", "Argentina", "Australia", "Bolivia", "Brasil"],
+            "Medio": ["Arabia Saudita", "Austria", "Bélgica", "Camerún", "Congo"],
+            "Difícil": ["Andorra", "Bosnia y Herzegovina", "Bulgaria", "Burkina Faso", "Escocia"]
+        },
+        Futbolistas: {
+            "Fácil": ["Achraf Hakimi", "Alfredo Di Stéfano", "Andrés Iniesta", "Arjen Robben", "Cristiano Ronaldo"],
+            "Medio": ["Alessandro Nesta", "Alexis Sánchez", "Alisson Becker", "Alphonso Davies", "Claudio Bravo"],
+            "Difícil": ["Alessandro Del Piero", "Álvaro Morata", "Andrés Guardado", "Ansu Fati", "Blaise Matuidi"]
+        },
+        Cantantes: {
+            "Fácil": ["Adele", "Alci Acosta", "Ana Gabriel", "Andrés Cepeda", "Aventura"],
+            "Medio": ["50 Cent", "AC/DC", "Alejandro Fernández", "Andrés Calamaro", "Anuel AA"],
+            "Difícil": ["Adriana Lucía", "Andrea Bocelli", "Aterciopelados", "Avicii", "Binomio de Oro de América"]
+        },
+        ClashRoyale: ["Cocinero Real", "Duquesa de dagas", "Cañonero", "Princesa de torre", "Caballero"]
+    };
+
+    if (categoria === "Objetos" || categoria === "Animales" || categoria === "Personas" || categoria === "ClashRoyale") {
+        const lista = palabras[categoria] || palabras["Objetos"];
+        return lista[Math.floor(Math.random() * lista.length)];
+    } else {
+        const dificultades = palabras[categoria];
+        if (dificultades && dificultades[dificultad]) {
+            const lista = dificultades[dificultad];
+            return lista[Math.floor(Math.random() * lista.length)];
+        } else if (dificultades && typeof dificultades === 'object') {
+            const todas = [].concat(...Object.values(dificultades));
+            return todas[Math.floor(Math.random() * todas.length)];
+        } else {
+            return "Palabra";
+        }
+    }
+}
+
+function mostrarModo(modo) {
+    if (modo === "local") {
+        configGuardada = null;
+        configLocal = {
+            jugadores: [],
+            categoria: "Objetos",
+            dificultad: "Fácil",
+            impostores: 1,
+            maxJugadores: 4,
+            palabraActual: "",
+            jugadorActual: 0,
+            roles: [],
+            impostoresIndices: []
+        };
+
+        document.getElementById("cantidadJugadoresLocal").value = "4";
+        document.getElementById("cantidadImpostoresLocal").value = "1";
+        document.getElementById("categoriaLocal").value = "Objetos";
+        document.getElementById("dificultadContainerLocal").style.display = "none";
+        document.getElementById("dificultadLocal").value = "Fácil";
+
+        mostrar("pantalla-local-config");
+    } else {
+        document.getElementById("codigoSalaUnirse").value = "";
+        mostrar("multijugador-nombre");
+    }
+}
 
-.btn-atras:hover {
-  background: #222;
-  color: white;
-}
+function actualizarDificultadLocal() {
+    const categoria = document.getElementById("categoriaLocal").value;
+    const dificultadContainer = document.getElementById("dificultadContainerLocal");
+    const selectDificultad = document.getElementById("dificultadLocal");
+
+    const sinDificultad = ["Objetos", "Animales", "Personas", "ClashRoyale"];
+
+    if (sinDificultad.includes(categoria)) {
+        dificultadContainer.style.display = "none";
+    } else {
+        dificultadContainer.style.display = "block";
+        selectDificultad.value = "Fácil";
+        configLocal.dificultad = "Fácil";
+    }
+}
+
+function actualizarImpostoresLocal() {
+    const cantidadJugadores = parseInt(document.getElementById("cantidadJugadoresLocal").value);
+    const selectImpostores = document.getElementById("cantidadImpostoresLocal");
+
+    selectImpostores.innerHTML = "";
+    const maxImpostores = Math.min(Math.floor(cantidadJugadores / 3), cantidadJugadores - 1);
+
+    for (let i = 1; i <= maxImpostores; i++) {
+        const option = document.createElement("option");
+        option.value = i;
+        option.textContent = i;
+        selectImpostores.appendChild(option);
+    }
+
+    selectImpostores.value = Math.min(1, maxImpostores);
+    configLocal.impostores = parseInt(selectImpostores.value);
+}
+
+function irNombresLocal() {
+    const cantidad = parseInt(document.getElementById("cantidadJugadoresLocal").value);
+    const impostores = parseInt(document.getElementById("cantidadImpostoresLocal").value);
+    const categoria = document.getElementById("categoriaLocal").value;
+    const dificultad = document.getElementById("dificultadLocal").value;
+
+    if (cantidad < 3 || cantidad > 15) {
+        alert("La cantidad debe estar entre 3 y 15 jugadores");
+        return;
+    }
+
+    configLocal.maxJugadores = cantidad;
+    configLocal.impostores = impostores;
+    configLocal.categoria = categoria;
+    configLocal.dificultad = dificultad;
+
+    configLocal.jugadores = [];
+
+    if (configGuardada && configGuardada.jugadores) {
+        for (let i = 0; i < cantidad; i++) {
+            if (i < configGuardada.jugadores.length) {
+                configLocal.jugadores.push({
+                    nombre: configGuardada.jugadores[i].nombre,
+                    id: i
+                });
+            } else {
+                configLocal.jugadores.push({
+                    nombre: `Jugador ${i + 1}`,
+                    id: i
+                });
+            }
+        }
+    } else {
+        for (let i = 0; i < cantidad; i++) {
+            configLocal.jugadores.push({
+                nombre: `Jugador ${i + 1}`,
+                id: i
+            });
+        }
+    }
+
+    mostrarJugadoresLocales();
+}
+
+function mostrarJugadoresLocales() {
+    const contenedor = document.getElementById("contenedorNombresLocal");
+    contenedor.innerHTML = "";
+
+    configLocal.jugadores.forEach((jugador, index) => {
+        const div = document.createElement("div");
+        div.className = "jugador-input";
+        div.innerHTML = `
+            <div class="jugador-numero">Jugador ${index + 1}</div>
+            <input type="text" 
+                   class="nombre-jugador-local" 
+                   data-index="${index}"
+                   value="${jugador.nombre}"
+                   placeholder="Nombre del jugador">
+        `;
+        contenedor.appendChild(div);
+    });
+
+    document.querySelectorAll('.nombre-jugador-local').forEach(input => {
+        input.addEventListener('input', function() {
+            const index = parseInt(this.getAttribute('data-index'));
+            const nuevoNombre = this.value.trim() || `Jugador ${index + 1}`;
+            configLocal.jugadores[index].nombre = nuevoNombre;
+        });
+    });
+
+    mostrar("pantalla-local-nombres");
+}
+
+function volverConfigLocal() {
+    mostrar("pantalla-local-config");
+}
+
+function iniciarJuegoLocal() {
+    document.querySelectorAll('.nombre-jugador-local').forEach(input => {
+        const index = parseInt(input.getAttribute('data-index'));
+        const nombre = input.value.trim() || `Jugador ${index + 1}`;
+        configLocal.jugadores[index].nombre = nombre;
+    });
+
+    configLocal.palabraActual = generarPalabraLocal(configLocal.categoria, configLocal.dificultad);
+    asignarRolesLocales();
+    configLocal.jugadorActual = 0;
+    mostrarJugadorLocal();
+}
+
+function asignarRolesLocales() {
+    configLocal.roles = new Array(configLocal.jugadores.length).fill("INOCENTE");
+    configLocal.impostoresIndices = [];
+
+    let indices = Array.from({length: configLocal.jugadores.length}, (_, i) => i);
+
+    for (let i = indices.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [indices[i], indices[j]] = [indices[j], indices[i]];
+    }
+
+    for (let i = 0; i < configLocal.impostores; i++) {
+        const impostorIndex = indices[i];
+        configLocal.roles[impostorIndex] = "IMPOSTOR";
+        configLocal.impostoresIndices.push(impostorIndex);
+    }
+}
+
+function mostrarJugadorLocal() {
+    const jugador = configLocal.jugadores[configLocal.jugadorActual];
+
+    document.getElementById("tituloJugadorLocal").textContent = `Turno del Jugador ${configLocal.jugadorActual + 1}`;
+    document.getElementById("nombreJugadorLocal").textContent = jugador.nombre;
+    document.getElementById("categoriaNombreLocal").textContent = configLocal.categoria;
+    document.getElementById("dificultadNombreLocal").textContent = configLocal.dificultad;
+    document.getElementById("impostoresNombreLocal").textContent = configLocal.impostores;
+    document.getElementById("totalJugadoresLocal").textContent = configLocal.maxJugadores;
+
+    const sinDificultad = ["Objetos", "Animales", "Personas", "ClashRoyale"];
+    const dificultadItem = document.getElementById("dificultadItemLocal");
+    if (sinDificultad.includes(configLocal.categoria)) {
+        dificultadItem.style.display = "none";
+    } else {
+        dificultadItem.style.display = "flex";
+    }
+
+    mostrar("pantalla-local-jugador");
+}
+
+function verPalabraLocal() {
+    const jugador = configLocal.jugadores[configLocal.jugadorActual];
+    const rol = configLocal.roles[configLocal.jugadorActual];
+
+    document.getElementById("tituloJugadorPalabra").textContent = `Turno del Jugador ${configLocal.jugadorActual + 1}`;
+    document.getElementById("nombreJugadorPalabra").textContent = jugador.nombre;
+    document.getElementById("categoriaPalabra").textContent = configLocal.categoria;
+    document.getElementById("dificultadPalabra").textContent = configLocal.dificultad;
+    document.getElementById("impostoresPalabra").textContent = configLocal.impostores;
+    document.getElementById("totalJugadoresPalabra").textContent = configLocal.maxJugadores;
+
+    const sinDificultad = ["Objetos", "Animales", "Personas", "ClashRoyale"];
+    const dificultadItem = document.getElementById("dificultadItemPalabra");
+    if (sinDificultad.includes(configLocal.categoria)) {
+        dificultadItem.style.display = "none";
+    } else {
+        dificultadItem.style.display = "flex";
+    }
+
+    const palabraElem = document.getElementById("palabraJugadorLocal");
+
+    if (rol === "IMPOSTOR") {
+        palabraElem.textContent = "IMPOSTOR";
+        palabraElem.className = "palabra-display palabra-impostor";
+    } else {
+        palabraElem.textContent = configLocal.palabraActual;
+        palabraElem.className = "palabra-display palabra-inocente";
+    }
+
+    const esUltimo = configLocal.jugadorActual === configLocal.jugadores.length - 1;
+    document.getElementById("btnSiguienteLocal").classList.toggle("hidden", esUltimo);
+    document.getElementById("btnFinalizarLocal").classList.toggle("hidden", !esUltimo);
+
+    mostrar("pantalla-local-palabra");
+}
+
+function siguienteJugadorLocal() {
+    configLocal.jugadorActual++;
+    mostrarJugadorLocal();
+}
+
+function finalizarJuegoLocal() {
+    mostrar("pantalla-local-final");
+    document.getElementById("impostorRevelado").classList.add("hidden");
+    document.getElementById("palabraReveladaLocal").classList.add("hidden");
+}
+
+function revelarImpostorLocal() {
+    const impostores = configLocal.impostoresIndices.map(index => configLocal.jugadores[index]);
+
+    let impostoresTexto = "";
+
+    if (impostores.length === 1) {
+        impostoresTexto = impostores[0].nombre;
+        document.getElementById("impostorTituloLocal").textContent = "EL IMPOSTOR ES:";
+    } else {
+        const nombresImpostores = impostores.map((imp, i) => `Impostor ${i + 1}: ${imp.nombre}`).join("<br>");
+        impostoresTexto = nombresImpostores;
+        document.getElementById("impostorTituloLocal").textContent = "LOS IMPOSTORES SON:";
+    }
+
+    document.getElementById("impostorReveladoTexto").innerHTML = impostoresTexto;
+    document.getElementById("impostorRevelado").classList.remove("hidden");
+
+    document.getElementById("palabraReveladaTextoLocal").textContent = configLocal.palabraActual;
+    document.getElementById("palabraReveladaLocal").classList.remove("hidden");
+
+    document.querySelector("#pantalla-local-final .revelar-container button").style.display = "none";
+}
+
+function volveraJugarLocal() {
+    configLocal.palabraActual = generarPalabraLocal(configLocal.categoria, configLocal.dificultad);
+    asignarRolesLocales();
+    configLocal.jugadorActual = 0;
+
+    document.getElementById("impostorRevelado").classList.add("hidden");
+    document.getElementById("palabraReveladaLocal").classList.add("hidden");
+    document.querySelector("#pantalla-local-final .revelar-container button").style.display = "block";
+
+    mostrarJugadorLocal();
+}
+
+function volverConfiguracionLocal() {
+    configGuardada = {
+        maxJugadores: configLocal.maxJugadores,
+        impostores: configLocal.impostores,
+        categoria: configLocal.categoria,
+        dificultad: configLocal.dificultad,
+        jugadores: [...configLocal.jugadores]
+    };
+
+    if (configGuardada) {
+        document.getElementById("cantidadJugadoresLocal").value = configGuardada.maxJugadores;
+        document.getElementById("categoriaLocal").value = configGuardada.categoria;
+        actualizarImpostoresLocal();
+        document.getElementById("cantidadImpostoresLocal").value = configGuardada.impostores;
+        configLocal.impostores = configGuardada.impostores;
+    }
+
+    mostrar("pantalla-local-config");
+}
+
+function continuarMultijugador() {
+    const nombre = document.getElementById("nombreJugadorMultijugador").value.trim();
+
+    if (!nombre) {
+        alert("Debes ingresar un nombre");
+        return;
+    }
+
+    if (nombre.length > 20) {
+        alert("El nombre no puede tener más de 20 caracteres");
+        return;
+    }
+
+    nombreJugador = nombre;
+    mostrar("multijugador-elegir");
+}
 
-.card.opcion {
-  background: #1a1a1a;
-  padding: 18px;
-  border-radius: 10px;
-  margin: 12px 0;
-  cursor: pointer;
-  transition: all 0.2s;
-  border: 1px solid #333;
-  text-align: left;
-}
-
-.card.opcion:hover {
-  background: #222;
-  border-color: #444;
-  transform: translateY(-3px);
-}
-
-.card.opcion h3 {
-  margin-top: 0;
-  color: white;
-  font-weight: 500;
-  font-size: 18px;
-  margin-bottom: 5px;
-}
-
-.card.opcion p {
-  color: #aaa;
-  margin-bottom: 0;
-  font-size: 14px;
-}
-
-.configuracion {
-  margin: 20px 0;
-  text-align: left;
+function mostrarCrearSala() {
+    soyCreador = true;
+    const codigo = generarCodigoSala();
+    document.getElementById("codigoSalaCreador").textContent = codigo;
+    salaActual = codigo;
+
+    actualizarImpostoresMultijugador();
+    actualizarDificultadMultijugador();
+
+    document.getElementById("listaJugadoresLobby").innerHTML = "";
+    document.getElementById("jugadoresActuales").textContent = "0";
+
+    socket.emit("crearSala", {
+        nombre: nombreJugador,
+        codigo: codigo,
+        maxJugadores: parseInt(document.getElementById("cantidadJugadoresMultijugador").value),
+        impostores: parseInt(document.getElementById("cantidadImpostoresMultijugador").value),
+        categoria: document.getElementById("categoriaMultijugador").value,
+        dificultad: document.getElementById("dificultadMultijugador").value
+    });
+
+    mostrar("multijugador-crear");
+}
+
+function mostrarUnirseSala() {
+    soyCreador = false;
+    mostrar("multijugador-unirse");
+}
+
+function volverPrincipal() {
+    if (salaActual) {
+        socket.emit("abandonarSala", salaActual);
+        salaActual = null;
+    }
+    mostrar("pantalla-principal");
 }
 
-.configuracion label {
-  display: block;
-  margin-bottom: 8px;
-  font-weight: 500;
-  color: #ccc;
-  font-size: 15px;
-}
-
-.select-config {
-  width: 100%;
-  padding: 14px;
-  border-radius: 8px;
-  border: 1px solid #333;
-  background: #1a1a1a;
-  color: white;
-  font-size: 16px;
-  transition: all 0.2s;
-  -webkit-appearance: none;
-  -moz-appearance: none;
-  appearance: none;
-}
-
-.select-config:focus {
-  outline: none;
-  border-color: #555;
-  background: #222;
-}
-
-.nota {
-  font-size: 12px;
-  color: #777;
-  margin-top: 5px;
-  margin-left: 5px;
-  font-style: italic;
-}
-
-.row {
-  margin-top: 25px;
-  display: flex;
-  gap: 12px;
-  justify-content: center;
-  flex-wrap: wrap;
-}
-
-.row-buttons {
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
-  margin-top: 25px;
-}
-
-.jugador-input {
-  margin: 15px 0;
-  padding: 15px;
-  background: #1a1a1a;
-  border-radius: 8px;
-  border: 1px solid #333;
-}
-
-.jugador-numero {
-  color: #ccc;
-  margin-bottom: 8px;
-  font-weight: 500;
-  text-align: left;
-  font-size: 15px;
-}
-
-.jugador-input input {
-  width: 100%;
-  padding: 14px;
-  border-radius: 8px;
-  border: 1px solid #333;
-  background: #222;
-  color: white;
-  font-size: 16px;
-  transition: all 0.2s;
-}
-
-.jugador-input input:focus {
-  outline: none;
-  border-color: #555;
-  background: #2a2a2a;
+function volverMultijugadorPrincipal() {
+    if (salaActual) {
+        socket.emit("abandonarSala", salaActual);
+        salaActual = null;
+    }
+    mostrar("multijugador-nombre");
 }
 
-.jugador-lista {
-  padding: 12px;
-  border-bottom: 1px solid #222;
-  text-align: left;
-  display: flex;
-  align-items: center;
-  font-size: 15px;
-  color: #ddd;
-  line-height: 1.4;
-}
-
-.jugador-lista:last-child {
-  border-bottom: none;
-}
-
-.creador-indicator {
-  color: #00ccff;
-  font-size: 12px;
-  margin-left: 8px;
-  background: rgba(0, 204, 255, 0.1);
-  padding: 2px 6px;
-  border-radius: 4px;
-  font-weight: 500;
-}
-
-.palabra-display {
-  font-size: 36px;
-  font-weight: 300;
-  margin: 25px 0;
-  padding: 20px;
-  border-radius: 10px;
-  background: #1a1a1a;
-  border: 2px solid #333;
-  min-height: 110px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  letter-spacing: 1px;
-  word-break: break-word;
-  line-height: 1.2;
-}
-
-.palabra-inocente {
-  color: white;
-  border-color: #444;
-  background: #1a1a1a;
-}
-
-.palabra-impostor {
-  color: #ff3333;
-  border-color: #ff3333;
-  background: rgba(255, 51, 51, 0.05);
-  font-weight: 500;
-}
-
-.nombre-jugador-display {
-  font-size: 28px;
-  color: white;
-  margin: 18px 0;
-  text-align: center;
-  font-weight: 300;
-  word-break: break-word;
-}
-
-.info-jugador {
-  margin: 20px 0;
-  padding: 18px;
-  background: #1a1a1a;
-  border-radius: 10px;
-  border: 1px solid #333;
-}
-
-.info-detalle {
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-  margin-top: 18px;
-}
-
-.info-item {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 10px 0;
-  border-bottom: 1px solid #222;
-  flex-wrap: wrap;
-}
-
-.info-item:last-child {
-  border-bottom: none;
-}
-
-.info-label {
-  color: #aaa;
-  font-size: 15px;
-  margin-right: 10px;
-}
-
-.info-valor {
-  color: white;
-  font-weight: 500;
-  font-size: 16px;
-}
-
-.impostor-info {
-  font-size: 22px;
-  color: #ff3333;
-  font-weight: 500;
-  margin: 20px 0;
-  padding: 18px;
-  background: rgba(255, 51, 51, 0.05);
-  border-radius: 10px;
-  border: 2px solid #ff3333;
-  text-align: center;
-}
-
-.impostor-titulo {
-  font-size: 16px;
-  color: #ff6666;
-  margin-bottom: 10px;
-  text-transform: uppercase;
-  letter-spacing: 1px;
-  font-weight: 400;
-}
-
-.impostor-nombre {
-  font-size: 28px;
-  color: #ff3333;
-  font-weight: 500;
-  word-break: break-word;
+function volverElegirMultijugador() {
+    if (salaActual) {
+        socket.emit("abandonarSala", salaActual);
+        salaActual = null;
+    }
+    mostrar("multijugador-elegir");
 }
 
-.revelar-container {
-  margin: 25px 0;
-  padding: 18px;
-  background: #1a1a1a;
-  border-radius: 10px;
-  border: 1px solid #333;
+function generarCodigoSala() {
+    const caracteres = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
+    let codigo = "";
+    for (let i = 0; i < 5; i++) {
+        codigo += caracteres.charAt(Math.floor(Math.random() * caracteres.length));
+    }
+    return codigo;
 }
 
-.modal-salida {
-  position: fixed;
-  inset: 0;
-  background: rgba(0, 0, 0, 0.95);
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  z-index: 1000;
-  backdrop-filter: blur(3px);
-  padding: 15px;
-}
+function actualizarDificultadMultijugador() {
+    const categoria = document.getElementById("categoriaMultijugador").value;
+    const dificultadContainer = document.getElementById("dificultadContainerMultijugador");
+    const selectDificultad = document.getElementById("dificultadMultijugador");
 
-.modal-box {
-  background: #111;
-  padding: 25px;
-  border-radius: 12px;
-  text-align: center;
-  max-width: 400px;
-  width: 100%;
-  border: 1px solid #333;
-  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.9);
+    const sinDificultad = ["Objetos", "Animales", "Personas", "ClashRoyale"];
+
+    if (sinDificultad.includes(categoria)) {
+        dificultadContainer.style.display = "none";
+    } else {
+        dificultadContainer.style.display = "block";
+        if (!selectDificultad.value) {
+            selectDificultad.value = "Fácil";
+        }
+    }
 }
+
+function actualizarImpostoresMultijugador() {
+    const cantidadJugadores = parseInt(document.getElementById("cantidadJugadoresMultijugador").value);
+    const selectImpostores = document.getElementById("cantidadImpostoresMultijugador");
 
-.modal-buttons {
-  display: flex;
-  gap: 12px;
-  justify-content: center;
-  margin-top: 20px;
-}
+    selectImpostores.innerHTML = "";
+    const maxImpostores = Math.min(Math.floor(cantidadJugadores / 3), cantidadJugadores - 1);
 
-.modal-buttons button {
-  flex: 1;
-  min-width: 120px;
+    for (let i = 1; i <= maxImpostores; i++) {
+        const option = document.createElement("option");
+        option.value = i;
+        option.textContent = i;
+        selectImpostores.appendChild(option);
+    }
+
+    selectImpostores.value = Math.min(1, maxImpostores);
 }
+
+function unirseSala() {
+    const codigo = document.getElementById("codigoSalaUnirse").value.trim().toUpperCase();
+
+    if (!codigo) {
+        alert("Ingresa el código de la sala");
+        return;
+    }
 
-input[type="text"] {
-  width: 100%;
-  padding: 14px;
-  margin: 12px 0;
-  border-radius: 8px;
-  border: 1px solid #333;
-  background: #1a1a1a;
-  color: white;
-  font-size: 16px;
-  transition: all 0.2s;
-}
-
-input[type="text"]:focus {
-  outline: none;
-  border-color: #555;
-  background: #222;
-}
-
-input[type="text"]::placeholder {
-  color: #666;
-}
-
-/* Header styling para pantallas */
-.header-container {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  margin-bottom: 20px;
-  flex-wrap: wrap;
-  gap: 10px;
+    if (codigo.length !== 5) {
+        alert("El código debe tener 5 caracteres");
+        return;
+    }
+
+    socket.emit("unirseSala", { 
+        sala: codigo, 
+        nombre: nombreJugador 
+    });
 }
+
+function iniciarJuegoMultijugador() {
+    console.log("Iniciando juego en sala:", salaActual);
+    if (!salaActual) {
+        alert("No hay sala activa");
+        return;
+    }
+
+    const btn = document.getElementById("btnIniciarJuego");
+    btn.disabled = true;
+    btn.textContent = "Iniciando...";
+
+    setTimeout(() => {
+        btn.disabled = false;
+        btn.textContent = "🚀 Iniciar Juego";
+    }, 2000);
 
-.header-title {
-  flex: 1;
-  text-align: center;
-  margin: 0;
-  color: white;
-  font-size: 20px;
-}
-
-/* Estilos para la dificultad */
-.dificultad-facil {
-  color: #4CAF50;
-  font-weight: 500;
-}
-
-.dificultad-medio {
-  color: #FF9800;
-  font-weight: 500;
-}
-
-.dificultad-dificil {
-  color: #F44336;
-  font-weight: 500;
-}
-
-/* Mejorar visualización de configuración */
-.config-resumen-item {
-  margin-bottom: 8px;
-  padding: 5px 0;
-  border-bottom: 1px solid #222;
-}
-
-.config-resumen-item:last-child {
-  border-bottom: none;
-}
-
-/* Responsive improvements */
-@media (min-width: 768px) {
-  body {
-      align-items: center;
-      padding: 20px;
-  }
-
-  .screen {
-      padding: 25px;
-      margin: 10px auto;
-  }
-
-  button {
-      width: auto;
-      min-width: 150px;
-      margin: 10px 5px;
-  }
-
-  .btn-atras {
-      min-width: 80px;
-  }
-
-  .row-buttons {
-      flex-direction: row;
-      justify-content: center;
-  }
-
-  .row-buttons button {
-      min-width: 180px;
-  }
-
-  .modal-buttons button {
-      min-width: 140px;
-  }
-
-  .titulo-app {
-      font-size: 32px;
-      margin-bottom: 30px;
-  }
-
-  .palabra-display {
-      font-size: 42px;
-      padding: 25px;
-      min-height: 120px;
-  }
-
-  .nombre-jugador-display {
-      font-size: 32px;
-  }
-
-  .impostor-nombre {
-      font-size: 32px;
-  }
-
-  .impostor-titulo {
-      font-size: 18px;
-  }
-
-  .header-title {
-      font-size: 22px;
-  }
-}
-
-/* Para pantallas muy pequeñas */
-@media (max-width: 360px) {
-  .screen {
-      padding: 15px;
-      border-radius: 10px;
-  }
-
-  .titulo-app {
-      font-size: 24px;
-      margin-bottom: 20px;
-  }
-
-  .palabra-display {
-      font-size: 28px;
-      padding: 15px;
-      min-height: 90px;
-      margin: 20px 0;
-  }
-
-  button {
-      padding: 14px 16px;
-      font-size: 15px;
-  }
-
-  .btn-atras {
-      padding: 8px 12px;
-      font-size: 13px;
-      min-width: 60px;
-  }
-
-  .nombre-jugador-display {
-      font-size: 24px;
-      margin: 15px 0;
-  }
-
-  .impostor-nombre {
-      font-size: 24px;
-  }
-
-  .card.opcion {
-      padding: 15px;
-  }
-
-  .card.opcion h3 {
-      font-size: 16px;
-  }
-
-  .card.opcion p {
-      font-size: 13px;
-  }
-
-  .info-jugador,
-  .revelar-container,
-  .jugador-input {
-      padding: 15px;
-  }
-
-  .header-title {
-      font-size: 18px;
-  }
-
-  .info-detalle .info-item {
-      flex-direction: column;
-      align-items: flex-start;
-      gap: 5px;
-  }
-
-  .info-detalle .info-label {
-      margin-right: 0;
-      font-size: 14px;
-  }
-
-  .info-detalle .info-valor {
-      font-size: 15px;
-  }
-}
-
-/* Animación sutil para elementos interactivos */
-@keyframes pulse {
-  0% { opacity: 1; }
-  50% { opacity: 0.8; }
-  100% { opacity: 1; }
-}
-
-button:focus, .card.opcion:focus {
-  animation: pulse 1.5s infinite;
-}
-
-/* Mejorar la experiencia táctil */
-@media (hover: none) and (pointer: coarse) {
-  button:hover {
-      transform: none;
-      background: #222222;
-  }
-
-  .card.opcion:hover {
-      transform: none;
-      background: #1a1a1a;
-  }
-
-  button:active {
-      background: #2a2a2a;
-      transform: scale(0.98);
-  }
-
-  .card.opcion:active {
-      background: #222;
-      transform: scale(0.98);
-  }
-}
-
-/* Efecto de carga */
-.cargando {
-  position: relative;
-  color: transparent;
-}
-
-.cargando::after {
-  content: '';
-  position: absolute;
-  left: 50%;
-  top: 50%;
-  transform: translate(-50%, -50%);
-  width: 20px;
-  height: 20px;
-  border: 2px solid #333;
-  border-top-color: white;
-  border-radius: 50%;
-  animation: spin 1s linear infinite;
-}
-
-@keyframes spin {
-  to { transform: translate(-50%, -50%) rotate(360deg); }
+    socket.emit("iniciarJuego", salaActual);
 }
+
+function verPalabraMultijugador() {
+    console.log("Solicitando palabra para sala:", salaActual);
+    if (!salaActual) return;
+    socket.emit("verPalabra", salaActual);
+}
+
+function marcarListo() {
+    if (!salaActual) return;
+
+    console.log("Marcando como listo en sala:", salaActual);
+    socket.emit("marcarListo", salaActual);
+    document.getElementById("btnListoMultijugador").disabled = true;
+    document.getElementById("btnListoMultijugador").textContent = "✅ Listo";
+}
+
+function votarImpostor() {
+    if (!salaActual) return;
+    console.log("Votando impostor en sala:", salaActual);
+    socket.emit("votarImpostor", salaActual);
+}
+
+function volveraJugarMultijugador() {
+    if (!salaActual) return;
+    console.log("Volviendo a jugar en sala:", salaActual);
+    socket.emit("volverAJugar", salaActual);
+}
+
+function volverConfiguracionMultijugador() {
+    if (!salaActual) return;
+    console.log("Volviendo a configuración en sala:", salaActual);
+    socket.emit("volverConfiguracion", salaActual);
+}
+
+function confirmarSalirSala() {
+    document.getElementById("confirmModal").classList.remove("hidden");
+}
+
+function confirmSalir(ok) {
+    document.getElementById("confirmModal").classList.add("hidden");
+
+    if (ok) {
+        if (salaActual) {
+            socket.emit("abandonarSala", salaActual);
+            salaActual = null;
+        }
+        mostrar("pantalla-principal");
+    }
+}
+
+socket.on("connect", () => {
+    console.log("Conectado al servidor");
+});
+
+socket.on("connect_error", (error) => {
+    console.error("Error de conexión:", error);
+    alert("No se pudo conectar al servidor. Revisa tu conexión.");
+});
+
+socket.on("disconnect", () => {
+    console.log("Desconectado del servidor");
+});
+
+socket.on("salaCreada", (data) => {
+    console.log("Sala creada:", data.sala);
+    actualizarLobbyCreador(data);
+});
+
+socket.on("salaUnida", (data) => {
+    console.log("Unido a sala:", data.sala);
+    salaActual = data.sala;
+    soyCreador = false;
+    actualizarLobbyUnido(data);
+});
+
+socket.on("errorUnirse", (msg) => {
+    alert("Error: " + msg);
+});
+
+socket.on("error", (msg) => {
+    alert("Error: " + msg);
+    document.getElementById("btnIniciarJuego").disabled = false;
+    document.getElementById("btnIniciarJuego").textContent = "🚀 Iniciar Juego";
+});
+
+socket.on("jugadoresActualizados", (data) => {
+    console.log("Jugadores actualizados en sala:", data.sala);
+    if (soyCreador) {
+        actualizarLobbyCreador(data);
+    } else {
+        actualizarLobbyUnido(data);
+    }
+});
+
+socket.on("configuracionModificada", (data) => {
+    if (soyCreador) {
+        document.getElementById("cantidadJugadoresMultijugador").value = data.maxJugadores;
+        document.getElementById("categoriaMultijugador").value = data.categoria;
+        actualizarImpostoresMultijugador();
+        document.getElementById("cantidadImpostoresMultijugador").value = data.impostores;
+        if (data.dificultad) {
+            document.getElementById("dificultadMultijugador").value = data.dificultad;
+        }
+        document.getElementById("maxJugadoresDisplay").textContent = data.maxJugadores;
+    }
+});
+
+socket.on("irPantallaVerPalabra", (data) => {
+    console.log("Yendo a pantalla de ver palabra en sala:", data.sala);
+    categoriaActual = data.categoria;
+    dificultadActual = data.dificultad || "";
+    salaActual = data.sala;
+    palabraActualMultijugador = data.palabra;  // GUARDAR LA PALABRA
+
+    document.getElementById("tituloJugadorMultijugadorVer").textContent = `ID: ${salaActual}`;
+    document.getElementById("nombreJugadorMultijugadorVer").textContent = nombreJugador;
+    document.getElementById("categoriaJugadorMultijugadorVer").textContent = categoriaActual;
+
+    const sinDificultad = ["Objetos", "Animales", "Personas", "ClashRoyale"];
+    if (sinDificultad.includes(categoriaActual) || !dificultadActual) {
+        document.getElementById("dificultadJugadorMultijugadorVer").textContent = "No aplica";
+    } else {
+        document.getElementById("dificultadJugadorMultijugadorVer").textContent = dificultadActual;
+    }
+
+    document.getElementById("impostoresJugadorMultijugadorVer").textContent = data.impostores;
+    document.getElementById("totalJugadoresMultijugadorVer").textContent = data.totalJugadores;
+
+    document.getElementById("btnVerPalabraMultijugador").disabled = false;
+    document.getElementById("btnVerPalabraMultijugador").textContent = "👁️ Ver";
+
+    mostrar("multijugador-ver-palabra");
+});
+
+socket.on("resultadoPalabra", (data) => {
+    console.log("Recibiendo palabra para jugador");
+    miRol = data.rol;
+
+    document.getElementById("tituloJugadorMultijugadorRevelado").textContent = `ID: ${salaActual}`;
+    document.getElementById("nombreJugadorMultijugadorRevelado").textContent = nombreJugador;
+    document.getElementById("categoriaJugadorMultijugadorRevelado").textContent = categoriaActual;
+
+    const sinDificultad = ["Objetos", "Animales", "Personas", "ClashRoyale"];
+    if (sinDificultad.includes(categoriaActual) || !dificultadActual) {
+        document.getElementById("dificultadJugadorMultijugadorRevelado").textContent = "No aplica";
+    } else {
+        document.getElementById("dificultadJugadorMultijugadorRevelado").textContent = dificultadActual;
+    }
+
+    document.getElementById("impostoresJugadorMultijugadorRevelado").textContent = data.impostores;
+    document.getElementById("totalJugadoresMultijugadorRevelado").textContent = data.totalJugadores;
+
+    const palabraElem = document.getElementById("textoPalabraRevelada");
+
+    if (data.rol === "IMPOSTOR") {
+        palabraElem.textContent = "IMPOSTOR";
+        palabraElem.className = "palabra-display palabra-impostor";
+    } else {
+        palabraElem.textContent = data.palabra;
+        palabraElem.className = "palabra-display palabra-inocente";
+    }
+
+    document.getElementById("btnListoMultijugador").disabled = false;
+    document.getElementById("btnListoMultijugador").textContent = "✅ Listo";
+    document.getElementById("btnListoMultijugador").style.display = "block";
+
+    mostrar("multijugador-palabra-revelada");
+});
+
+socket.on("todosListos", (data) => {
+    console.log("Estado de listos:", data);
+
+    if (data.todosListos) {
+        console.log("TODOS están listos en sala:", salaActual);
+        palabraActualMultijugador = data.palabra;  // GUARDAR PALABRA PARA MOSTRAR
+        mostrar("multijugador-final");
+        document.getElementById("codigoTextoFinal").textContent = salaActual;
+
+        if (soyCreador) {
+            document.getElementById("opcionesCreador").style.display = "flex";
+        } else {
+            document.getElementById("opcionesCreador").style.display = "none";
+        }
+
+        document.getElementById("impostorReveladoMultijugador").classList.add("hidden");
+        document.getElementById("palabraReveladaMultijugador").classList.add("hidden");
+
+        document.getElementById("btnVotarImpostor").style.display = "block";
+        document.getElementById("btnVotarImpostor").disabled = false;
+        document.getElementById("btnVotarImpostor").textContent = "🔍 Revelar Impostor y Palabra";
+    }
+});
+
+socket.on("impostorRevelado", (data) => {
+    console.log("Impostor(es) revelado(s):", data.impostores);
+    palabraActualMultijugador = data.palabra;  // ACTUALIZAR PALABRA
+
+    let impostoresTexto = "";
+
+    if (data.impostores.length === 1) {
+        impostoresTexto = `Jugador ${data.impostores[0].posicion}: ${data.impostores[0].nombre}`;
+        document.getElementById("impostorTituloMultijugador").textContent = "👤 El impostor es:";
+    } else {
+        const impostoresList = data.impostores.map(i => `Jugador ${i.posicion}: ${i.nombre}`).join("<br>");
+        impostoresTexto = impostoresList;
+        document.getElementById("impostorTituloMultijugador").textContent = "👤 Los impostores son:";
+    }
+
+    document.getElementById("impostorReveladoTextoMultijugador").innerHTML = impostoresTexto;
+
+    if (data.palabra) {
+        // CORREGIDO: Usar el ID correcto
+        document.getElementById("palabraReveladaTextoMultijugador").textContent = data.palabra;
+        document.getElementById("palabraReveladaMultijugador").classList.remove("hidden");
+    }
+
+    document.getElementById("impostorReveladoMultijugador").classList.remove("hidden");
+    document.getElementById("btnVotarImpostor").style.display = "none";
+});
+
+socket.on("juegoReiniciado", () => {
+    console.log("Juego reiniciado en sala:", salaActual);
+});
+
+socket.on("volverConfiguracionSala", () => {
+    console.log("Volviendo a configuración de sala:", salaActual);
+    if (soyCreador) {
+        mostrar("multijugador-crear");
+    } else {
+        mostrar("multijugador-sala-unido");
+    }
+});
+
+socket.on("salaEliminada", () => {
+    alert("El creador ha abandonado la sala. Todos serán desconectados.");
+    salaActual = null;
+    mostrar("pantalla-principal");
+});
+
+function actualizarLobbyCreador(data) {
+    console.log("Actualizando lobby creador para sala:", data.sala);
+    document.getElementById("codigoSalaCreador").textContent = data.sala;
+    document.getElementById("jugadoresActuales").textContent = data.jugadores.length;
+    document.getElementById("maxJugadoresDisplay").textContent = data.maxJugadores;
+
+    const lista = document.getElementById("listaJugadoresLobby");
+    lista.innerHTML = "";
+
+    data.jugadores.forEach((jugador) => {
+        const div = document.createElement("div");
+        div.className = "jugador-lista";
+
+        let jugadorTexto = `Jugador ${jugador.posicion}: ${jugador.nombre}`;
+
+        if (jugador.id === data.creador) {
+            const creadorSpan = document.createElement("span");
+            creadorSpan.className = "creador-indicator";
+            creadorSpan.textContent = "(Creador)";
+
+            div.textContent = jugadorTexto;
+            div.appendChild(document.createTextNode(" "));
+            div.appendChild(creadorSpan);
+        } else {
+            div.textContent = jugadorTexto;
+        }
+
+        lista.appendChild(div);
+    });
+
+    const btnIniciar = document.getElementById("btnIniciarJuego");
+    const puedeIniciar = data.jugadores.length === data.maxJugadores;
+    btnIniciar.disabled = !puedeIniciar;
+
+    console.log(`Puede iniciar: ${puedeIniciar} (${data.jugadores.length}/${data.maxJugadores} jugadores)`);
+}
+
+function actualizarLobbyUnido(data) {
+    console.log("Actualizando lobby unido para sala:", data.sala);
+    document.getElementById("codigoSalaUnido").textContent = data.sala;
+    document.getElementById("jugadoresActualesUnido").textContent = data.jugadores.length;
+    document.getElementById("maxJugadoresDisplayUnido").textContent = data.maxJugadores;
+
+    const configResumen = document.getElementById("configResumen");
+    let configHTML = `
+        <div style="margin-bottom: 8px;">Jugadores: ${data.jugadores.length} / ${data.maxJugadores}</div>
+        <div style="margin-bottom: 8px;">Impostores: ${data.impostores}</div>
+        <div style="margin-bottom: 8px;">Categoría: ${data.categoria}</div>
+    `;
+
+    const sinDificultad = ["Objetos", "Animales", "Personas", "ClashRoyale"];
+    if (data.dificultad && !sinDificultad.includes(data.categoria)) {
+        configHTML += `<div>Dificultad: ${data.dificultad}</div>`;
+    }
+
+    configResumen.innerHTML = configHTML;
+
+    const lista = document.getElementById("listaJugadoresUnido");
+    lista.innerHTML = "";
+
+    data.jugadores.forEach((jugador) => {
+        const div = document.createElement("div");
+        div.className = "jugador-lista";
+
+        let jugadorTexto = `Jugador ${jugador.posicion}: ${jugador.nombre}`;
+
+        if (jugador.id === data.creador) {
+            const creadorSpan = document.createElement("span");
+            creadorSpan.className = "creador-indicator";
+            creadorSpan.textContent = "(Creador)";
+
+            div.textContent = jugadorTexto;
+            div.appendChild(document.createTextNode(" "));
+            div.appendChild(creadorSpan);
+        } else {
+            div.textContent = jugadorTexto;
+        }
+
+        lista.appendChild(div);
+    });
+
+    mostrar("multijugador-sala-unido");
+}
+
+document.addEventListener("DOMContentLoaded", () => {
+    document.getElementById("cantidadJugadoresLocal")?.addEventListener("change", function() {
+        actualizarImpostoresLocal();
+    });
+
+    document.getElementById("cantidadImpostoresLocal")?.addEventListener("change", function() {
+        configLocal.impostores = parseInt(this.value);
+    });
+
+    document.getElementById("categoriaLocal")?.addEventListener("change", function() {
+        actualizarDificultadLocal();
+    });
+
+    document.getElementById("cantidadJugadoresMultijugador")?.addEventListener("change", function() {
+        actualizarImpostoresMultijugador();
+        if (salaActual && soyCreador) {
+            socket.emit("modificarConfiguracion", {
+                sala: salaActual,
+                maxJugadores: parseInt(this.value),
+                impostores: parseInt(document.getElementById("cantidadImpostoresMultijugador").value),
+                categoria: document.getElementById("categoriaMultijugador").value,
+                dificultad: document.getElementById("dificultadMultijugador").value
+            });
+        }
+    });
+
+    document.getElementById("cantidadImpostoresMultijugador")?.addEventListener("change", function() {
+        if (salaActual && soyCreador) {
+            socket.emit("modificarConfiguracion", {
+                sala: salaActual,
+                maxJugadores: parseInt(document.getElementById("cantidadJugadoresMultijugador").value),
+                impostores: parseInt(this.value),
+                categoria: document.getElementById("categoriaMultijugador").value,
+                dificultad: document.getElementById("dificultadMultijugador").value
+            });
+        }
+    });
+
+    document.getElementById("categoriaMultijugador")?.addEventListener("change", function() {
+        actualizarDificultadMultijugador();
+        if (salaActual && soyCreador) {
+            socket.emit("modificarConfiguracion", {
+                sala: salaActual,
+                maxJugadores: parseInt(document.getElementById("cantidadJugadoresMultijugador").value),
+                impostores: parseInt(document.getElementById("cantidadImpostoresMultijugador").value),
+                categoria: this.value,
+                dificultad: document.getElementById("dificultadMultijugador").value
+            });
+        }
+    });
+
+    document.getElementById("dificultadMultijugador")?.addEventListener("change", function() {
+        if (salaActual && soyCreador) {
+            socket.emit("modificarConfiguracion", {
+                sala: salaActual,
+                maxJugadores: parseInt(document.getElementById("cantidadJugadoresMultijugador").value),
+                impostores: parseInt(document.getElementById("cantidadImpostoresMultijugador").value),
+                categoria: document.getElementById("categoriaMultijugador").value,
+                dificultad: this.value
+            });
+        }
+    });
+
+    actualizarImpostoresLocal();
+    actualizarDificultadLocal();
+    actualizarImpostoresMultijugador();
+    actualizarDificultadMultijugador();
+
+    document.getElementById("nombreJugadorMultijugador")?.addEventListener("keypress", function(e) {
+        if (e.key === "Enter") continuarMultijugador();
+    });
+
+    document.getElementById("codigoSalaUnirse")?.addEventListener("keypress", function(e) {
+        if (e.key === "Enter") unirseSala();
+    });
+});
