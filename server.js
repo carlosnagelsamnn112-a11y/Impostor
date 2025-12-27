@@ -1,916 +1,513 @@
-const socket = io();
+const express = require("express");
+const app = express();
+const http = require("http").createServer(app);
+const io = require("socket.io")(http);
 
-let nombreJugador = "";
-let salaActual = null;
-let categoriaActual = "";
-let dificultadActual = "";
-let miRol = null;
-let soyCreador = false;
-let palabraActualMultijugador = "";  // NUEVA VARIABLE
+app.use(express.static(__dirname));
 
-let configLocal = {
-    jugadores: [],
-    categoria: "Objetos",
-    dificultad: "Fácil",
-    impostores: 1,
-    maxJugadores: 4,
-    palabraActual: "",
-    jugadorActual: 0,
-    roles: [],
-    impostoresIndices: []
+const salas = {};
+const palabras = {
+    Objetos: ["Agenda", "Alfombra", "Almohada", "Altavoz", "Antena", "Archivador", "Arena", "Armario", "Asiento", "Audífonos"],
+    Animales: ["Abeja", "Águila", "Alce", "Anaconda", "Anguila", "Araña", "Ardilla", "Armadillo", "Atún", "Avestruz"],
+    Personas: ["Catalina Puerto", "Ana Maria", "Katerin Cardona", "Maleja", "Katerin Becerra"],
+    Países: {
+        "Fácil": ["Alemania", "Argentina", "Australia", "Bolivia", "Brasil"],
+        "Medio": ["Arabia Saudita", "Austria", "Bélgica", "Camerún", "Congo"],
+        "Difícil": ["Andorra", "Bosnia y Herzegovina", "Bulgaria", "Burkina Faso", "Escocia"]
+    },
+    Futbolistas: {
+        "Fácil": ["Achraf Hakimi", "Alfredo Di Stéfano", "Andrés Iniesta", "Arjen Robben", "Cristiano Ronaldo"],
+        "Medio": ["Alessandro Nesta", "Alexis Sánchez", "Alisson Becker", "Alphonso Davies", "Claudio Bravo"],
+        "Difícil": ["Alessandro Del Piero", "Álvaro Morata", "Andrés Guardado", "Ansu Fati", "Blaise Matuidi"]
+    },
+    Cantantes: {
+        "Fácil": ["Adele", "Alci Acosta", "Ana Gabriel", "Andrés Cepeda", "Aventura"],
+        "Medio": ["50 Cent", "AC/DC", "Alejandro Fernández", "Andrés Calamaro", "Anuel AA"],
+        "Difícil": ["Adriana Lucía", "Andrea Bocelli", "Aterciopelados", "Avicii", "Binomio de Oro de América"]
+    },
+    ClashRoyale: ["Cocinero Real", "Duquesa de dagas", "Cañonero", "Princesa de torre", "Caballero"]
 };
 
-let configGuardada = null;
+function generarPalabra(categoria, dificultad) {
+    if (!categoria) return "Palabra";
 
-function ocultarTodas() {
-    document.querySelectorAll(".screen").forEach(s => s.classList.add("hidden"));
-    document.getElementById("confirmModal").classList.add("hidden");
-}
+    const sinDificultad = ["Objetos", "Animales", "Personas", "ClashRoyale"];
 
-function mostrar(id) {
-    ocultarTodas();
-    document.getElementById(id).classList.remove("hidden");
-}
-
-function generarPalabraLocal(categoria, dificultad) {
-    const palabras = {
-        Objetos: ["Agenda", "Alfombra", "Almohada", "Altavoz", "Antena", "Archivador", "Arena", "Armario", "Asiento", "Audífonos"],
-        Animales: ["Abeja", "Águila", "Alce", "Anaconda", "Anguila", "Araña", "Ardilla", "Armadillo", "Atún", "Avestruz"],
-        Personas: ["Catalina Puerto", "Ana Maria", "Katerin Cardona", "Maleja", "Katerin Becerra"],
-        Países: {
-            "Fácil": ["Alemania", "Argentina", "Australia", "Bolivia", "Brasil"],
-            "Medio": ["Arabia Saudita", "Austria", "Bélgica", "Camerún", "Congo"],
-            "Difícil": ["Andorra", "Bosnia y Herzegovina", "Bulgaria", "Burkina Faso", "Escocia"]
-        },
-        Futbolistas: {
-            "Fácil": ["Achraf Hakimi", "Alfredo Di Stéfano", "Andrés Iniesta", "Arjen Robben", "Cristiano Ronaldo"],
-            "Medio": ["Alessandro Nesta", "Alexis Sánchez", "Alisson Becker", "Alphonso Davies", "Claudio Bravo"],
-            "Difícil": ["Alessandro Del Piero", "Álvaro Morata", "Andrés Guardado", "Ansu Fati", "Blaise Matuidi"]
-        },
-        Cantantes: {
-            "Fácil": ["Adele", "Alci Acosta", "Ana Gabriel", "Andrés Cepeda", "Aventura"],
-            "Medio": ["50 Cent", "AC/DC", "Alejandro Fernández", "Andrés Calamaro", "Anuel AA"],
-            "Difícil": ["Adriana Lucía", "Andrea Bocelli", "Aterciopelados", "Avicii", "Binomio de Oro de América"]
-        },
-        ClashRoyale: ["Cocinero Real", "Duquesa de dagas", "Cañonero", "Princesa de torre", "Caballero"]
-    };
-
-    if (categoria === "Objetos" || categoria === "Animales" || categoria === "Personas" || categoria === "ClashRoyale") {
+    if (sinDificultad.includes(categoria)) {
         const lista = palabras[categoria] || palabras["Objetos"];
         return lista[Math.floor(Math.random() * lista.length)];
     } else {
         const dificultades = palabras[categoria];
-        if (dificultades && dificultades[dificultad]) {
+        if (!dificultades) return "Palabra";
+
+        if (dificultad && dificultades[dificultad]) {
             const lista = dificultades[dificultad];
             return lista[Math.floor(Math.random() * lista.length)];
-        } else if (dificultades && typeof dificultades === 'object') {
+        } else {
             const todas = [].concat(...Object.values(dificultades));
             return todas[Math.floor(Math.random() * todas.length)];
-        } else {
-            return "Palabra";
         }
     }
 }
 
-function mostrarModo(modo) {
-    if (modo === "local") {
-        configGuardada = null;
-        configLocal = {
-            jugadores: [],
-            categoria: "Objetos",
-            dificultad: "Fácil",
-            impostores: 1,
-            maxJugadores: 4,
-            palabraActual: "",
-            jugadorActual: 0,
-            roles: [],
-            impostoresIndices: []
+io.on("connection", socket => {
+    console.log(`Usuario conectado: ${socket.id}`);
+
+    socket.on("crearSala", data => {
+        if (!data.nombre || !data.codigo) {
+            socket.emit("error", "Datos incompletos");
+            return;
+        }
+
+        if (salas[data.codigo]) {
+            socket.emit("error", "El código ya existe");
+            return;
+        }
+
+        salas[data.codigo] = {
+            creador: socket.id,
+            maxJugadores: data.maxJugadores,
+            impostores: data.impostores,
+            categoria: data.categoria,
+            dificultad: data.dificultad,
+            jugadores: [{ id: socket.id, nombre: data.nombre, posicion: 1 }],
+            palabra: null,
+            listaParaVer: [],
+            listos: [],
+            votosImpostor: 0,
+            roles: {},
+            estado: "esperando"
         };
 
-        document.getElementById("cantidadJugadoresLocal").value = "4";
-        document.getElementById("cantidadImpostoresLocal").value = "1";
-        document.getElementById("categoriaLocal").value = "Objetos";
-        document.getElementById("dificultadContainerLocal").style.display = "none";
-        document.getElementById("dificultadLocal").value = "Fácil";
+        socket.join(data.codigo);
+        console.log(`Sala creada: ${data.codigo} por ${data.nombre}`);
 
-        mostrar("pantalla-local-config");
-    } else {
-        document.getElementById("codigoSalaUnirse").value = "";
-        mostrar("multijugador-nombre");
-    }
-}
-
-function actualizarDificultadLocal() {
-    const categoria = document.getElementById("categoriaLocal").value;
-    const dificultadContainer = document.getElementById("dificultadContainerLocal");
-    const selectDificultad = document.getElementById("dificultadLocal");
-
-    const sinDificultad = ["Objetos", "Animales", "Personas", "ClashRoyale"];
-
-    if (sinDificultad.includes(categoria)) {
-        dificultadContainer.style.display = "none";
-    } else {
-        dificultadContainer.style.display = "block";
-        selectDificultad.value = "Fácil";
-        configLocal.dificultad = "Fácil";
-    }
-}
-
-function actualizarImpostoresLocal() {
-    const cantidadJugadores = parseInt(document.getElementById("cantidadJugadoresLocal").value);
-    const selectImpostores = document.getElementById("cantidadImpostoresLocal");
-
-    selectImpostores.innerHTML = "";
-    const maxImpostores = Math.min(Math.floor(cantidadJugadores / 3), cantidadJugadores - 1);
-
-    for (let i = 1; i <= maxImpostores; i++) {
-        const option = document.createElement("option");
-        option.value = i;
-        option.textContent = i;
-        selectImpostores.appendChild(option);
-    }
-
-    selectImpostores.value = Math.min(1, maxImpostores);
-    configLocal.impostores = parseInt(selectImpostores.value);
-}
-
-function irNombresLocal() {
-    const cantidad = parseInt(document.getElementById("cantidadJugadoresLocal").value);
-    const impostores = parseInt(document.getElementById("cantidadImpostoresLocal").value);
-    const categoria = document.getElementById("categoriaLocal").value;
-    const dificultad = document.getElementById("dificultadLocal").value;
-
-    if (cantidad < 3 || cantidad > 15) {
-        alert("La cantidad debe estar entre 3 y 15 jugadores");
-        return;
-    }
-
-    configLocal.maxJugadores = cantidad;
-    configLocal.impostores = impostores;
-    configLocal.categoria = categoria;
-    configLocal.dificultad = dificultad;
-
-    configLocal.jugadores = [];
-
-    if (configGuardada && configGuardada.jugadores) {
-        for (let i = 0; i < cantidad; i++) {
-            if (i < configGuardada.jugadores.length) {
-                configLocal.jugadores.push({
-                    nombre: configGuardada.jugadores[i].nombre,
-                    id: i
-                });
-            } else {
-                configLocal.jugadores.push({
-                    nombre: `Jugador ${i + 1}`,
-                    id: i
-                });
-            }
-        }
-    } else {
-        for (let i = 0; i < cantidad; i++) {
-            configLocal.jugadores.push({
-                nombre: `Jugador ${i + 1}`,
-                id: i
-            });
-        }
-    }
-
-    mostrarJugadoresLocales();
-}
-
-function mostrarJugadoresLocales() {
-    const contenedor = document.getElementById("contenedorNombresLocal");
-    contenedor.innerHTML = "";
-
-    configLocal.jugadores.forEach((jugador, index) => {
-        const div = document.createElement("div");
-        div.className = "jugador-input";
-        div.innerHTML = `
-            <div class="jugador-numero">Jugador ${index + 1}</div>
-            <input type="text" 
-                   class="nombre-jugador-local" 
-                   data-index="${index}"
-                   value="${jugador.nombre}"
-                   placeholder="Nombre del jugador">
-        `;
-        contenedor.appendChild(div);
-    });
-
-    document.querySelectorAll('.nombre-jugador-local').forEach(input => {
-        input.addEventListener('input', function() {
-            const index = parseInt(this.getAttribute('data-index'));
-            const nuevoNombre = this.value.trim() || `Jugador ${index + 1}`;
-            configLocal.jugadores[index].nombre = nuevoNombre;
+        socket.emit("salaCreada", {
+            sala: data.codigo,
+            creador: socket.id,
+            maxJugadores: data.maxJugadores,
+            impostores: data.impostores,
+            categoria: data.categoria,
+            dificultad: data.dificultad,
+            jugadores: salas[data.codigo].jugadores
         });
     });
 
-    mostrar("pantalla-local-nombres");
-}
+    socket.on("modificarConfiguracion", data => {
+        const sala = salas[data.sala];
+        if (!sala || socket.id !== sala.creador) return;
 
-function volverConfigLocal() {
-    mostrar("pantalla-local-config");
-}
+        sala.maxJugadores = data.maxJugadores;
+        sala.impostores = data.impostores;
+        sala.categoria = data.categoria;
+        sala.dificultad = data.dificultad;
 
-function iniciarJuegoLocal() {
-    document.querySelectorAll('.nombre-jugador-local').forEach(input => {
-        const index = parseInt(input.getAttribute('data-index'));
-        const nombre = input.value.trim() || `Jugador ${index + 1}`;
-        configLocal.jugadores[index].nombre = nombre;
+        console.log(`Configuración modificada en ${data.sala}`);
+
+        io.to(data.sala).emit("configuracionModificada", {
+            maxJugadores: sala.maxJugadores,
+            impostores: sala.impostores,
+            categoria: sala.categoria,
+            dificultad: sala.dificultad
+        });
+
+        io.to(data.sala).emit("jugadoresActualizados", {
+            sala: data.sala,
+            creador: sala.creador,
+            maxJugadores: sala.maxJugadores,
+            impostores: sala.impostores,
+            categoria: sala.categoria,
+            dificultad: sala.dificultad,
+            jugadores: sala.jugadores
+        });
     });
 
-    configLocal.palabraActual = generarPalabraLocal(configLocal.categoria, configLocal.dificultad);
-    asignarRolesLocales();
-    configLocal.jugadorActual = 0;
-    mostrarJugadorLocal();
-}
+    socket.on("unirseSala", data => {
+        if (!data.sala || !data.nombre) {
+            socket.emit("errorUnirse", "Datos incompletos");
+            return;
+        }
 
-function asignarRolesLocales() {
-    configLocal.roles = new Array(configLocal.jugadores.length).fill("INOCENTE");
-    configLocal.impostoresIndices = [];
+        const codigo = data.sala.toUpperCase();
+        const sala = salas[codigo];
 
-    let indices = Array.from({length: configLocal.jugadores.length}, (_, i) => i);
+        if (!sala) {
+            socket.emit("errorUnirse", "La sala no existe");
+            return;
+        }
 
-    for (let i = indices.length - 1; i > 0; i--) {
+        if (sala.estado !== "esperando") {
+            socket.emit("errorUnirse", "La partida ya comenzó");
+            return;
+        }
+
+        if (sala.jugadores.length >= sala.maxJugadores) {
+            socket.emit("errorUnirse", "La sala está llena");
+            return;
+        }
+
+        if (sala.jugadores.some(j => j.nombre === data.nombre)) {
+            socket.emit("errorUnirse", "Ese nombre ya está en uso");
+            return;
+        }
+
+        const posicion = sala.jugadores.length + 1;
+        sala.jugadores.push({ id: socket.id, nombre: data.nombre, posicion: posicion });
+        socket.join(codigo);
+
+        console.log(`${data.nombre} se unió a ${codigo} como jugador ${posicion}`);
+
+        io.to(codigo).emit("jugadoresActualizados", {
+            sala: codigo,
+            creador: sala.creador,
+            maxJugadores: sala.maxJugadores,
+            impostores: sala.impostores,
+            categoria: sala.categoria,
+            dificultad: sala.dificultad,
+            jugadores: sala.jugadores
+        });
+
+        socket.emit("salaUnida", {
+            sala: codigo,
+            creador: sala.creador,
+            maxJugadores: sala.maxJugadores,
+            impostores: sala.impostores,
+            categoria: sala.categoria,
+            dificultad: sala.dificultad,
+            jugadores: sala.jugadores
+        });
+    });
+
+    socket.on("iniciarJuego", salaCodigo => {
+        const sala = salas[salaCodigo];
+        if (!sala) {
+            console.log(`Sala ${salaCodigo} no encontrada`);
+            return;
+        }
+
+        if (socket.id !== sala.creador) {
+            socket.emit("error", "Solo el creador puede iniciar el juego");
+            return;
+        }
+
+        if (sala.jugadores.length !== sala.maxJugadores) {
+            const faltan = sala.maxJugadores - sala.jugadores.length;
+            socket.emit("error", `Faltan ${faltan} jugador(es)`);
+            return;
+        }
+
+        sala.estado = "jugando";
+        sala.palabra = generarPalabra(sala.categoria, sala.dificultad);
+        sala.listaParaVer = [...sala.jugadores.map(j => j.id)];
+        sala.listos = [];
+        sala.votosImpostor = 0;
+
+        sala.jugadores.forEach(j => {
+            j._haVotado = false;
+            j._votoImpostor = false;
+        });
+
+        asignarRolesAleatorios(sala);
+
+        console.log(`=== Partida iniciada en ${salaCodigo} ===`);
+        console.log(`Palabra: ${sala.palabra}`);
+        console.log(`Categoría: ${sala.categoria}`);
+        console.log(`Jugadores: ${sala.jugadores.length}`);
+        console.log(`Impostores: ${sala.impostores}`);
+        console.log(`Roles asignados:`, sala.roles);
+
+        io.to(salaCodigo).emit("irPantallaVerPalabra", {
+            sala: salaCodigo,
+            categoria: sala.categoria,
+            dificultad: sala.dificultad || "No aplica",
+            impostores: sala.impostores,
+            totalJugadores: sala.jugadores.length,
+            palabra: sala.palabra  // ENVIAR LA PALABRA AL CLIENTE
+        });
+    });
+
+    socket.on("verPalabra", salaCodigo => {
+        const sala = salas[salaCodigo];
+        if (!sala || sala.estado !== "jugando") {
+            console.log(`Error: Sala ${salaCodigo} no está jugando`);
+            return;
+        }
+
+        const jugador = sala.jugadores.find(j => j.id === socket.id);
+        if (!jugador) {
+            console.log(`Error: Jugador ${socket.id} no encontrado en sala`);
+            return;
+        }
+
+        const rol = sala.roles[socket.id];
+        let texto = rol === "IMPOSTOR" ? "IMPOSTOR" : sala.palabra;
+
+        if (sala.listaParaVer.includes(socket.id)) {
+            sala.listaParaVer = sala.listaParaVer.filter(id => id !== socket.id);
+        }
+
+        socket.emit("resultadoPalabra", {
+            rol: rol,
+            palabra: texto,
+            impostores: sala.impostores,
+            totalJugadores: sala.jugadores.length,
+            posicion: jugador.posicion,
+            palabraReal: sala.palabra  // ENVIAR PALABRA REAL PARA MOSTRAR AL FINAL
+        });
+    });
+
+    socket.on("marcarListo", salaCodigo => {
+        const sala = salas[salaCodigo];
+        if (!sala || sala.estado !== "jugando") return;
+
+        const jugador = sala.jugadores.find(j => j.id === socket.id);
+        if (!jugador) return;
+
+        if (!sala.listos.includes(socket.id)) {
+            sala.listos.push(socket.id);
+            console.log(`${jugador.nombre} marcó como listo: ${sala.listos.length}/${sala.jugadores.length}`);
+        }
+
+        if (sala.listos.length >= sala.jugadores.length) {
+            console.log(`Todos están listos en ${salaCodigo}`);
+
+            const impostores = [];
+            for (const [id, rol] of Object.entries(sala.roles)) {
+                if (rol === "IMPOSTOR") {
+                    const impostor = sala.jugadores.find(j => j.id === id);
+                    if (impostor) {
+                        impostores.push({
+                            nombre: impostor.nombre,
+                            posicion: impostor.posicion
+                        });
+                    }
+                }
+            }
+
+            console.log(`Impostores encontrados: ${impostores.length}`);
+
+            io.to(salaCodigo).emit("todosListos", {
+                totalListos: sala.listos.length,
+                totalJugadores: sala.jugadores.length,
+                todosListos: true,
+                impostores: impostores,
+                palabra: sala.palabra  // ENVIAR PALABRA
+            });
+        } else {
+            io.to(salaCodigo).emit("todosListos", {
+                totalListos: sala.listos.length,
+                totalJugadores: sala.jugadores.length,
+                todosListos: false
+            });
+        }
+    });
+
+    socket.on("votarImpostor", salaCodigo => {
+        const sala = salas[salaCodigo];
+        if (!sala) return;
+
+        const jugador = sala.jugadores.find(j => j.id === socket.id);
+        if (!jugador) return;
+
+        if (!jugador._votoImpostor) {
+            sala.votosImpostor++;
+            jugador._votoImpostor = true;
+            console.log(`${jugador.nombre} votó impostor: ${sala.votosImpostor}/${sala.jugadores.length}`);
+        }
+
+        if (sala.votosImpostor >= sala.jugadores.length) {
+            const impostores = [];
+            for (const [id, rol] of Object.entries(sala.roles)) {
+                if (rol === "IMPOSTOR") {
+                    const impostor = sala.jugadores.find(j => j.id === id);
+                    if (impostor) {
+                        impostores.push({
+                            nombre: impostor.nombre,
+                            posicion: impostor.posicion
+                        });
+                    }
+                }
+            }
+
+            console.log(`Revelando ${impostores.length} impostor(es) por votación`);
+
+            io.to(salaCodigo).emit("impostorRevelado", {
+                impostores: impostores,
+                palabra: sala.palabra  // ENVIAR PALABRA
+            });
+        }
+    });
+
+    socket.on("revelarImpostor", salaCodigo => {
+        const sala = salas[salaCodigo];
+        if (!sala) return;
+
+        const impostores = [];
+        for (const [id, rol] of Object.entries(sala.roles)) {
+            if (rol === "IMPOSTOR") {
+                const impostor = sala.jugadores.find(j => j.id === id);
+                if (impostor) {
+                    impostores.push({
+                        nombre: impostor.nombre,
+                        posicion: impostor.posicion
+                    });
+                }
+            }
+        }
+
+        console.log(`Revelando ${impostores.length} impostor(es) manualmente`);
+
+        io.to(salaCodigo).emit("impostorRevelado", {
+            impostores: impostores,
+            palabra: sala.palabra  // ENVIAR PALABRA
+        });
+    });
+
+    socket.on("volverAJugar", salaCodigo => {
+        const sala = salas[salaCodigo];
+        if (!sala || socket.id !== sala.creador) return;
+
+        sala.estado = "jugando";
+        sala.palabra = generarPalabra(sala.categoria, sala.dificultad);
+        sala.listaParaVer = [...sala.jugadores.map(j => j.id)];
+        sala.listos = [];
+        sala.votosImpostor = 0;
+
+        sala.jugadores.forEach(j => {
+            j._haVotado = false;
+            j._votoImpostor = false;
+        });
+
+        asignarRolesAleatorios(sala);
+
+        console.log(`Partida reiniciada en ${salaCodigo}: ${sala.palabra}`);
+
+        io.to(salaCodigo).emit("juegoReiniciado");
+        io.to(salaCodigo).emit("irPantallaVerPalabra", {
+            sala: salaCodigo,
+            categoria: sala.categoria,
+            dificultad: sala.dificultad || "No aplica",
+            impostores: sala.impostores,
+            totalJugadores: sala.jugadores.length,
+            palabra: sala.palabra  // ENVIAR PALABRA
+        });
+    });
+
+    socket.on("volverConfiguracion", salaCodigo => {
+        const sala = salas[salaCodigo];
+        if (!sala || socket.id !== sala.creador) return;
+
+        sala.estado = "esperando";
+        sala.palabra = null;
+        sala.listaParaVer = [];
+        sala.listos = [];
+        sala.votosImpostor = 0;
+        sala.roles = {};
+
+        sala.jugadores.forEach(j => {
+            j._haVotado = false;
+            j._votoImpostor = false;
+        });
+
+        io.to(salaCodigo).emit("volverConfiguracionSala");
+    });
+
+    socket.on("abandonarSala", salaCodigo => {
+        const sala = salas[salaCodigo];
+        if (!sala) return;
+
+        const jugador = sala.jugadores.find(j => j.id === socket.id);
+        if (!jugador) return;
+
+        sala.jugadores = sala.jugadores.filter(j => j.id !== socket.id);
+        socket.leave(salaCodigo);
+
+        console.log(`${jugador.nombre} abandonó ${salaCodigo}`);
+
+        if (socket.id === sala.creador) {
+            io.to(salaCodigo).emit("salaEliminada");
+            delete salas[salaCodigo];
+            console.log(`Sala ${salaCodigo} eliminada por el creador`);
+        } else if (sala.jugadores.length > 0) {
+            sala.jugadores.forEach((j, index) => {
+                j.posicion = index + 1;
+            });
+
+            io.to(salaCodigo).emit("jugadoresActualizados", {
+                sala: salaCodigo,
+                creador: sala.creador,
+                maxJugadores: sala.maxJugadores,
+                impostores: sala.impostores,
+                categoria: sala.categoria,
+                dificultad: sala.dificultad,
+                jugadores: sala.jugadores
+            });
+        } else {
+            delete salas[salaCodigo];
+            console.log(`Sala ${salaCodigo} eliminada (sin jugadores)`);
+        }
+    });
+
+    socket.on("disconnect", () => {
+        console.log(`Usuario desconectado: ${socket.id}`);
+
+        for (const codigo in salas) {
+            const sala = salas[codigo];
+            const jugador = sala.jugadores.find(j => j.id === socket.id);
+
+            if (jugador) {
+                sala.jugadores = sala.jugadores.filter(j => j.id !== socket.id);
+
+                if (socket.id === sala.creador) {
+                    io.to(codigo).emit("salaEliminada");
+                    delete salas[codigo];
+                    console.log(`Sala ${codigo} eliminada por desconexión del creador`);
+                } else if (sala.jugadores.length > 0) {
+                    sala.jugadores.forEach((j, index) => {
+                        j.posicion = index + 1;
+                    });
+
+                    io.to(codigo).emit("jugadoresActualizados", {
+                        sala: codigo,
+                        creador: sala.creador,
+                        maxJugadores: sala.maxJugadores,
+                        impostores: sala.impostores,
+                        categoria: sala.categoria,
+                        dificultad: sala.dificultad,
+                        jugadores: sala.jugadores
+                    });
+                } else {
+                    delete salas[codigo];
+                    console.log(`Sala ${codigo} eliminada (sin jugadores)`);
+                }
+                break;
+            }
+        }
+    });
+});
+
+function asignarRolesAleatorios(sala) {
+    sala.roles = {};
+
+    let jugadoresIds = sala.jugadores.map(j => j.id);
+
+    for (let i = jugadoresIds.length - 1; i > 0; i--) {
         const j = Math.floor(Math.random() * (i + 1));
-        [indices[i], indices[j]] = [indices[j], indices[i]];
+        [jugadoresIds[i], jugadoresIds[j]] = [jugadoresIds[j], jugadoresIds[i]];
     }
 
-    for (let i = 0; i < configLocal.impostores; i++) {
-        const impostorIndex = indices[i];
-        configLocal.roles[impostorIndex] = "IMPOSTOR";
-        configLocal.impostoresIndices.push(impostorIndex);
-    }
-}
-
-function mostrarJugadorLocal() {
-    const jugador = configLocal.jugadores[configLocal.jugadorActual];
-
-    document.getElementById("tituloJugadorLocal").textContent = `Turno del Jugador ${configLocal.jugadorActual + 1}`;
-    document.getElementById("nombreJugadorLocal").textContent = jugador.nombre;
-    document.getElementById("categoriaNombreLocal").textContent = configLocal.categoria;
-    document.getElementById("dificultadNombreLocal").textContent = configLocal.dificultad;
-    document.getElementById("impostoresNombreLocal").textContent = configLocal.impostores;
-    document.getElementById("totalJugadoresLocal").textContent = configLocal.maxJugadores;
-
-    const sinDificultad = ["Objetos", "Animales", "Personas", "ClashRoyale"];
-    const dificultadItem = document.getElementById("dificultadItemLocal");
-    if (sinDificultad.includes(configLocal.categoria)) {
-        dificultadItem.style.display = "none";
-    } else {
-        dificultadItem.style.display = "flex";
-    }
-
-    mostrar("pantalla-local-jugador");
-}
-
-function verPalabraLocal() {
-    const jugador = configLocal.jugadores[configLocal.jugadorActual];
-    const rol = configLocal.roles[configLocal.jugadorActual];
-
-    document.getElementById("tituloJugadorPalabra").textContent = `Turno del Jugador ${configLocal.jugadorActual + 1}`;
-    document.getElementById("nombreJugadorPalabra").textContent = jugador.nombre;
-    document.getElementById("categoriaPalabra").textContent = configLocal.categoria;
-    document.getElementById("dificultadPalabra").textContent = configLocal.dificultad;
-    document.getElementById("impostoresPalabra").textContent = configLocal.impostores;
-    document.getElementById("totalJugadoresPalabra").textContent = configLocal.maxJugadores;
-
-    const sinDificultad = ["Objetos", "Animales", "Personas", "ClashRoyale"];
-    const dificultadItem = document.getElementById("dificultadItemPalabra");
-    if (sinDificultad.includes(configLocal.categoria)) {
-        dificultadItem.style.display = "none";
-    } else {
-        dificultadItem.style.display = "flex";
-    }
-
-    const palabraElem = document.getElementById("palabraJugadorLocal");
-
-    if (rol === "IMPOSTOR") {
-        palabraElem.textContent = "IMPOSTOR";
-        palabraElem.className = "palabra-display palabra-impostor";
-    } else {
-        palabraElem.textContent = configLocal.palabraActual;
-        palabraElem.className = "palabra-display palabra-inocente";
-    }
-
-    const esUltimo = configLocal.jugadorActual === configLocal.jugadores.length - 1;
-    document.getElementById("btnSiguienteLocal").classList.toggle("hidden", esUltimo);
-    document.getElementById("btnFinalizarLocal").classList.toggle("hidden", !esUltimo);
-
-    mostrar("pantalla-local-palabra");
-}
-
-function siguienteJugadorLocal() {
-    configLocal.jugadorActual++;
-    mostrarJugadorLocal();
-}
-
-function finalizarJuegoLocal() {
-    mostrar("pantalla-local-final");
-    document.getElementById("impostorRevelado").classList.add("hidden");
-    document.getElementById("palabraReveladaLocal").classList.add("hidden");
-}
-
-function revelarImpostorLocal() {
-    const impostores = configLocal.impostoresIndices.map(index => configLocal.jugadores[index]);
-
-    let impostoresTexto = "";
-
-    if (impostores.length === 1) {
-        impostoresTexto = impostores[0].nombre;
-        document.getElementById("impostorTituloLocal").textContent = "EL IMPOSTOR ES:";
-    } else {
-        const nombresImpostores = impostores.map((imp, i) => `Impostor ${i + 1}: ${imp.nombre}`).join("<br>");
-        impostoresTexto = nombresImpostores;
-        document.getElementById("impostorTituloLocal").textContent = "LOS IMPOSTORES SON:";
-    }
-
-    document.getElementById("impostorReveladoTexto").innerHTML = impostoresTexto;
-    document.getElementById("impostorRevelado").classList.remove("hidden");
-
-    document.getElementById("palabraReveladaTextoLocal").textContent = configLocal.palabraActual;
-    document.getElementById("palabraReveladaLocal").classList.remove("hidden");
-
-    document.querySelector("#pantalla-local-final .revelar-container button").style.display = "none";
-}
-
-function volveraJugarLocal() {
-    configLocal.palabraActual = generarPalabraLocal(configLocal.categoria, configLocal.dificultad);
-    asignarRolesLocales();
-    configLocal.jugadorActual = 0;
-
-    document.getElementById("impostorRevelado").classList.add("hidden");
-    document.getElementById("palabraReveladaLocal").classList.add("hidden");
-    document.querySelector("#pantalla-local-final .revelar-container button").style.display = "block";
-
-    mostrarJugadorLocal();
-}
-
-function volverConfiguracionLocal() {
-    configGuardada = {
-        maxJugadores: configLocal.maxJugadores,
-        impostores: configLocal.impostores,
-        categoria: configLocal.categoria,
-        dificultad: configLocal.dificultad,
-        jugadores: [...configLocal.jugadores]
-    };
-
-    if (configGuardada) {
-        document.getElementById("cantidadJugadoresLocal").value = configGuardada.maxJugadores;
-        document.getElementById("categoriaLocal").value = configGuardada.categoria;
-        actualizarImpostoresLocal();
-        document.getElementById("cantidadImpostoresLocal").value = configGuardada.impostores;
-        configLocal.impostores = configGuardada.impostores;
-    }
-
-    mostrar("pantalla-local-config");
-}
-
-function continuarMultijugador() {
-    const nombre = document.getElementById("nombreJugadorMultijugador").value.trim();
-
-    if (!nombre) {
-        alert("Debes ingresar un nombre");
-        return;
-    }
-
-    if (nombre.length > 20) {
-        alert("El nombre no puede tener más de 20 caracteres");
-        return;
-    }
-
-    nombreJugador = nombre;
-    mostrar("multijugador-elegir");
-}
-
-function mostrarCrearSala() {
-    soyCreador = true;
-    const codigo = generarCodigoSala();
-    document.getElementById("codigoSalaCreador").textContent = codigo;
-    salaActual = codigo;
-
-    actualizarImpostoresMultijugador();
-    actualizarDificultadMultijugador();
-
-    document.getElementById("listaJugadoresLobby").innerHTML = "";
-    document.getElementById("jugadoresActuales").textContent = "0";
-
-    socket.emit("crearSala", {
-        nombre: nombreJugador,
-        codigo: codigo,
-        maxJugadores: parseInt(document.getElementById("cantidadJugadoresMultijugador").value),
-        impostores: parseInt(document.getElementById("cantidadImpostoresMultijugador").value),
-        categoria: document.getElementById("categoriaMultijugador").value,
-        dificultad: document.getElementById("dificultadMultijugador").value
-    });
-
-    mostrar("multijugador-crear");
-}
-
-function mostrarUnirseSala() {
-    soyCreador = false;
-    mostrar("multijugador-unirse");
-}
-
-function volverPrincipal() {
-    if (salaActual) {
-        socket.emit("abandonarSala", salaActual);
-        salaActual = null;
-    }
-    mostrar("pantalla-principal");
-}
-
-function volverMultijugadorPrincipal() {
-    if (salaActual) {
-        socket.emit("abandonarSala", salaActual);
-        salaActual = null;
-    }
-    mostrar("multijugador-nombre");
-}
-
-function volverElegirMultijugador() {
-    if (salaActual) {
-        socket.emit("abandonarSala", salaActual);
-        salaActual = null;
-    }
-    mostrar("multijugador-elegir");
-}
-
-function generarCodigoSala() {
-    const caracteres = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
-    let codigo = "";
-    for (let i = 0; i < 5; i++) {
-        codigo += caracteres.charAt(Math.floor(Math.random() * caracteres.length));
-    }
-    return codigo;
-}
-
-function actualizarDificultadMultijugador() {
-    const categoria = document.getElementById("categoriaMultijugador").value;
-    const dificultadContainer = document.getElementById("dificultadContainerMultijugador");
-    const selectDificultad = document.getElementById("dificultadMultijugador");
-
-    const sinDificultad = ["Objetos", "Animales", "Personas", "ClashRoyale"];
-
-    if (sinDificultad.includes(categoria)) {
-        dificultadContainer.style.display = "none";
-    } else {
-        dificultadContainer.style.display = "block";
-        if (!selectDificultad.value) {
-            selectDificultad.value = "Fácil";
-        }
-    }
-}
-
-function actualizarImpostoresMultijugador() {
-    const cantidadJugadores = parseInt(document.getElementById("cantidadJugadoresMultijugador").value);
-    const selectImpostores = document.getElementById("cantidadImpostoresMultijugador");
-
-    selectImpostores.innerHTML = "";
-    const maxImpostores = Math.min(Math.floor(cantidadJugadores / 3), cantidadJugadores - 1);
-
-    for (let i = 1; i <= maxImpostores; i++) {
-        const option = document.createElement("option");
-        option.value = i;
-        option.textContent = i;
-        selectImpostores.appendChild(option);
-    }
-
-    selectImpostores.value = Math.min(1, maxImpostores);
-}
-
-function unirseSala() {
-    const codigo = document.getElementById("codigoSalaUnirse").value.trim().toUpperCase();
-
-    if (!codigo) {
-        alert("Ingresa el código de la sala");
-        return;
-    }
-
-    if (codigo.length !== 5) {
-        alert("El código debe tener 5 caracteres");
-        return;
-    }
-
-    socket.emit("unirseSala", { 
-        sala: codigo, 
-        nombre: nombreJugador 
-    });
-}
-
-function iniciarJuegoMultijugador() {
-    console.log("Iniciando juego en sala:", salaActual);
-    if (!salaActual) {
-        alert("No hay sala activa");
-        return;
-    }
-
-    const btn = document.getElementById("btnIniciarJuego");
-    btn.disabled = true;
-    btn.textContent = "Iniciando...";
-
-    setTimeout(() => {
-        btn.disabled = false;
-        btn.textContent = "🚀 Iniciar Juego";
-    }, 2000);
-
-    socket.emit("iniciarJuego", salaActual);
-}
-
-function verPalabraMultijugador() {
-    console.log("Solicitando palabra para sala:", salaActual);
-    if (!salaActual) return;
-    socket.emit("verPalabra", salaActual);
-}
-
-function marcarListo() {
-    if (!salaActual) return;
-
-    console.log("Marcando como listo en sala:", salaActual);
-    socket.emit("marcarListo", salaActual);
-    document.getElementById("btnListoMultijugador").disabled = true;
-    document.getElementById("btnListoMultijugador").textContent = "✅ Listo";
-}
-
-function votarImpostor() {
-    if (!salaActual) return;
-    console.log("Votando impostor en sala:", salaActual);
-    socket.emit("votarImpostor", salaActual);
-}
-
-function volveraJugarMultijugador() {
-    if (!salaActual) return;
-    console.log("Volviendo a jugar en sala:", salaActual);
-    socket.emit("volverAJugar", salaActual);
-}
-
-function volverConfiguracionMultijugador() {
-    if (!salaActual) return;
-    console.log("Volviendo a configuración en sala:", salaActual);
-    socket.emit("volverConfiguracion", salaActual);
-}
-
-function confirmarSalirSala() {
-    document.getElementById("confirmModal").classList.remove("hidden");
-}
-
-function confirmSalir(ok) {
-    document.getElementById("confirmModal").classList.add("hidden");
-
-    if (ok) {
-        if (salaActual) {
-            socket.emit("abandonarSala", salaActual);
-            salaActual = null;
-        }
-        mostrar("pantalla-principal");
-    }
-}
-
-socket.on("connect", () => {
-    console.log("Conectado al servidor");
-});
-
-socket.on("connect_error", (error) => {
-    console.error("Error de conexión:", error);
-    alert("No se pudo conectar al servidor. Revisa tu conexión.");
-});
-
-socket.on("disconnect", () => {
-    console.log("Desconectado del servidor");
-});
-
-socket.on("salaCreada", (data) => {
-    console.log("Sala creada:", data.sala);
-    actualizarLobbyCreador(data);
-});
-
-socket.on("salaUnida", (data) => {
-    console.log("Unido a sala:", data.sala);
-    salaActual = data.sala;
-    soyCreador = false;
-    actualizarLobbyUnido(data);
-});
-
-socket.on("errorUnirse", (msg) => {
-    alert("Error: " + msg);
-});
-
-socket.on("error", (msg) => {
-    alert("Error: " + msg);
-    document.getElementById("btnIniciarJuego").disabled = false;
-    document.getElementById("btnIniciarJuego").textContent = "🚀 Iniciar Juego";
-});
-
-socket.on("jugadoresActualizados", (data) => {
-    console.log("Jugadores actualizados en sala:", data.sala);
-    if (soyCreador) {
-        actualizarLobbyCreador(data);
-    } else {
-        actualizarLobbyUnido(data);
-    }
-});
-
-socket.on("configuracionModificada", (data) => {
-    if (soyCreador) {
-        document.getElementById("cantidadJugadoresMultijugador").value = data.maxJugadores;
-        document.getElementById("categoriaMultijugador").value = data.categoria;
-        actualizarImpostoresMultijugador();
-        document.getElementById("cantidadImpostoresMultijugador").value = data.impostores;
-        if (data.dificultad) {
-            document.getElementById("dificultadMultijugador").value = data.dificultad;
-        }
-        document.getElementById("maxJugadoresDisplay").textContent = data.maxJugadores;
-    }
-});
-
-socket.on("irPantallaVerPalabra", (data) => {
-    console.log("Yendo a pantalla de ver palabra en sala:", data.sala);
-    categoriaActual = data.categoria;
-    dificultadActual = data.dificultad || "";
-    salaActual = data.sala;
-    palabraActualMultijugador = data.palabra;  // GUARDAR LA PALABRA
-
-    document.getElementById("tituloJugadorMultijugadorVer").textContent = `ID: ${salaActual}`;
-    document.getElementById("nombreJugadorMultijugadorVer").textContent = nombreJugador;
-    document.getElementById("categoriaJugadorMultijugadorVer").textContent = categoriaActual;
-
-    const sinDificultad = ["Objetos", "Animales", "Personas", "ClashRoyale"];
-    if (sinDificultad.includes(categoriaActual) || !dificultadActual) {
-        document.getElementById("dificultadJugadorMultijugadorVer").textContent = "No aplica";
-    } else {
-        document.getElementById("dificultadJugadorMultijugadorVer").textContent = dificultadActual;
-    }
-
-    document.getElementById("impostoresJugadorMultijugadorVer").textContent = data.impostores;
-    document.getElementById("totalJugadoresMultijugadorVer").textContent = data.totalJugadores;
-
-    document.getElementById("btnVerPalabraMultijugador").disabled = false;
-    document.getElementById("btnVerPalabraMultijugador").textContent = "👁️ Ver";
-
-    mostrar("multijugador-ver-palabra");
-});
-
-socket.on("resultadoPalabra", (data) => {
-    console.log("Recibiendo palabra para jugador");
-    miRol = data.rol;
-
-    document.getElementById("tituloJugadorMultijugadorRevelado").textContent = `ID: ${salaActual}`;
-    document.getElementById("nombreJugadorMultijugadorRevelado").textContent = nombreJugador;
-    document.getElementById("categoriaJugadorMultijugadorRevelado").textContent = categoriaActual;
-
-    const sinDificultad = ["Objetos", "Animales", "Personas", "ClashRoyale"];
-    if (sinDificultad.includes(categoriaActual) || !dificultadActual) {
-        document.getElementById("dificultadJugadorMultijugadorRevelado").textContent = "No aplica";
-    } else {
-        document.getElementById("dificultadJugadorMultijugadorRevelado").textContent = dificultadActual;
-    }
-
-    document.getElementById("impostoresJugadorMultijugadorRevelado").textContent = data.impostores;
-    document.getElementById("totalJugadoresMultijugadorRevelado").textContent = data.totalJugadores;
-
-    const palabraElem = document.getElementById("textoPalabraRevelada");
-
-    if (data.rol === "IMPOSTOR") {
-        palabraElem.textContent = "IMPOSTOR";
-        palabraElem.className = "palabra-display palabra-impostor";
-    } else {
-        palabraElem.textContent = data.palabra;
-        palabraElem.className = "palabra-display palabra-inocente";
-    }
-
-    document.getElementById("btnListoMultijugador").disabled = false;
-    document.getElementById("btnListoMultijugador").textContent = "✅ Listo";
-    document.getElementById("btnListoMultijugador").style.display = "block";
-
-    mostrar("multijugador-palabra-revelada");
-});
-
-socket.on("todosListos", (data) => {
-    console.log("Estado de listos:", data);
-
-    if (data.todosListos) {
-        console.log("TODOS están listos en sala:", salaActual);
-        palabraActualMultijugador = data.palabra;  // GUARDAR PALABRA PARA MOSTRAR
-        mostrar("multijugador-final");
-        document.getElementById("codigoTextoFinal").textContent = salaActual;
-
-        if (soyCreador) {
-            document.getElementById("opcionesCreador").style.display = "flex";
+    for (let i = 0; i < jugadoresIds.length; i++) {
+        if (i < sala.impostores) {
+            sala.roles[jugadoresIds[i]] = "IMPOSTOR";
         } else {
-            document.getElementById("opcionesCreador").style.display = "none";
+            sala.roles[jugadoresIds[i]] = "INOCENTE";
         }
-
-        document.getElementById("impostorReveladoMultijugador").classList.add("hidden");
-        document.getElementById("palabraReveladaMultijugador").classList.add("hidden");
-
-        document.getElementById("btnVotarImpostor").style.display = "block";
-        document.getElementById("btnVotarImpostor").disabled = false;
-        document.getElementById("btnVotarImpostor").textContent = "🔍 Revelar Impostor y Palabra";
-    }
-});
-
-socket.on("impostorRevelado", (data) => {
-    console.log("Impostor(es) revelado(s):", data.impostores);
-    palabraActualMultijugador = data.palabra;  // ACTUALIZAR PALABRA
-
-    let impostoresTexto = "";
-
-    if (data.impostores.length === 1) {
-        impostoresTexto = `Jugador ${data.impostores[0].posicion}: ${data.impostores[0].nombre}`;
-        document.getElementById("impostorTituloMultijugador").textContent = "👤 El impostor es:";
-    } else {
-        const impostoresList = data.impostores.map(i => `Jugador ${i.posicion}: ${i.nombre}`).join("<br>");
-        impostoresTexto = impostoresList;
-        document.getElementById("impostorTituloMultijugador").textContent = "👤 Los impostores son:";
     }
 
-    document.getElementById("impostorReveladoTextoMultijugador").innerHTML = impostoresTexto;
-
-    if (data.palabra) {
-        // CORREGIDO: Usar el ID correcto
-        document.getElementById("palabraReveladaTextoMultijugador").textContent = data.palabra;
-        document.getElementById("palabraReveladaMultijugador").classList.remove("hidden");
-    }
-
-    document.getElementById("impostorReveladoMultijugador").classList.remove("hidden");
-    document.getElementById("btnVotarImpostor").style.display = "none";
-});
-
-socket.on("juegoReiniciado", () => {
-    console.log("Juego reiniciado en sala:", salaActual);
-});
-
-socket.on("volverConfiguracionSala", () => {
-    console.log("Volviendo a configuración de sala:", salaActual);
-    if (soyCreador) {
-        mostrar("multijugador-crear");
-    } else {
-        mostrar("multijugador-sala-unido");
-    }
-});
-
-socket.on("salaEliminada", () => {
-    alert("El creador ha abandonado la sala. Todos serán desconectados.");
-    salaActual = null;
-    mostrar("pantalla-principal");
-});
-
-function actualizarLobbyCreador(data) {
-    console.log("Actualizando lobby creador para sala:", data.sala);
-    document.getElementById("codigoSalaCreador").textContent = data.sala;
-    document.getElementById("jugadoresActuales").textContent = data.jugadores.length;
-    document.getElementById("maxJugadoresDisplay").textContent = data.maxJugadores;
-
-    const lista = document.getElementById("listaJugadoresLobby");
-    lista.innerHTML = "";
-
-    data.jugadores.forEach((jugador) => {
-        const div = document.createElement("div");
-        div.className = "jugador-lista";
-
-        let jugadorTexto = `Jugador ${jugador.posicion}: ${jugador.nombre}`;
-
-        if (jugador.id === data.creador) {
-            const creadorSpan = document.createElement("span");
-            creadorSpan.className = "creador-indicator";
-            creadorSpan.textContent = "(Creador)";
-
-            div.textContent = jugadorTexto;
-            div.appendChild(document.createTextNode(" "));
-            div.appendChild(creadorSpan);
-        } else {
-            div.textContent = jugadorTexto;
-        }
-
-        lista.appendChild(div);
-    });
-
-    const btnIniciar = document.getElementById("btnIniciarJuego");
-    const puedeIniciar = data.jugadores.length === data.maxJugadores;
-    btnIniciar.disabled = !puedeIniciar;
-
-    console.log(`Puede iniciar: ${puedeIniciar} (${data.jugadores.length}/${data.maxJugadores} jugadores)`);
+    console.log(`Roles asignados:`, sala.roles);
 }
 
-function actualizarLobbyUnido(data) {
-    console.log("Actualizando lobby unido para sala:", data.sala);
-    document.getElementById("codigoSalaUnido").textContent = data.sala;
-    document.getElementById("jugadoresActualesUnido").textContent = data.jugadores.length;
-    document.getElementById("maxJugadoresDisplayUnido").textContent = data.maxJugadores;
-
-    const configResumen = document.getElementById("configResumen");
-    let configHTML = `
-        <div style="margin-bottom: 8px;">Jugadores: ${data.jugadores.length} / ${data.maxJugadores}</div>
-        <div style="margin-bottom: 8px;">Impostores: ${data.impostores}</div>
-        <div style="margin-bottom: 8px;">Categoría: ${data.categoria}</div>
-    `;
-
-    const sinDificultad = ["Objetos", "Animales", "Personas", "ClashRoyale"];
-    if (data.dificultad && !sinDificultad.includes(data.categoria)) {
-        configHTML += `<div>Dificultad: ${data.dificultad}</div>`;
-    }
-
-    configResumen.innerHTML = configHTML;
-
-    const lista = document.getElementById("listaJugadoresUnido");
-    lista.innerHTML = "";
-
-    data.jugadores.forEach((jugador) => {
-        const div = document.createElement("div");
-        div.className = "jugador-lista";
-
-        let jugadorTexto = `Jugador ${jugador.posicion}: ${jugador.nombre}`;
-
-        if (jugador.id === data.creador) {
-            const creadorSpan = document.createElement("span");
-            creadorSpan.className = "creador-indicator";
-            creadorSpan.textContent = "(Creador)";
-
-            div.textContent = jugadorTexto;
-            div.appendChild(document.createTextNode(" "));
-            div.appendChild(creadorSpan);
-        } else {
-            div.textContent = jugadorTexto;
-        }
-
-        lista.appendChild(div);
-    });
-
-    mostrar("multijugador-sala-unido");
-}
-
-document.addEventListener("DOMContentLoaded", () => {
-    document.getElementById("cantidadJugadoresLocal")?.addEventListener("change", function() {
-        actualizarImpostoresLocal();
-    });
-
-    document.getElementById("cantidadImpostoresLocal")?.addEventListener("change", function() {
-        configLocal.impostores = parseInt(this.value);
-    });
-
-    document.getElementById("categoriaLocal")?.addEventListener("change", function() {
-        actualizarDificultadLocal();
-    });
-
-    document.getElementById("cantidadJugadoresMultijugador")?.addEventListener("change", function() {
-        actualizarImpostoresMultijugador();
-        if (salaActual && soyCreador) {
-            socket.emit("modificarConfiguracion", {
-                sala: salaActual,
-                maxJugadores: parseInt(this.value),
-                impostores: parseInt(document.getElementById("cantidadImpostoresMultijugador").value),
-                categoria: document.getElementById("categoriaMultijugador").value,
-                dificultad: document.getElementById("dificultadMultijugador").value
-            });
-        }
-    });
-
-    document.getElementById("cantidadImpostoresMultijugador")?.addEventListener("change", function() {
-        if (salaActual && soyCreador) {
-            socket.emit("modificarConfiguracion", {
-                sala: salaActual,
-                maxJugadores: parseInt(document.getElementById("cantidadJugadoresMultijugador").value),
-                impostores: parseInt(this.value),
-                categoria: document.getElementById("categoriaMultijugador").value,
-                dificultad: document.getElementById("dificultadMultijugador").value
-            });
-        }
-    });
-
-    document.getElementById("categoriaMultijugador")?.addEventListener("change", function() {
-        actualizarDificultadMultijugador();
-        if (salaActual && soyCreador) {
-            socket.emit("modificarConfiguracion", {
-                sala: salaActual,
-                maxJugadores: parseInt(document.getElementById("cantidadJugadoresMultijugador").value),
-                impostores: parseInt(document.getElementById("cantidadImpostoresMultijugador").value),
-                categoria: this.value,
-                dificultad: document.getElementById("dificultadMultijugador").value
-            });
-        }
-    });
-
-    document.getElementById("dificultadMultijugador")?.addEventListener("change", function() {
-        if (salaActual && soyCreador) {
-            socket.emit("modificarConfiguracion", {
-                sala: salaActual,
-                maxJugadores: parseInt(document.getElementById("cantidadJugadoresMultijugador").value),
-                impostores: parseInt(document.getElementById("cantidadImpostoresMultijugador").value),
-                categoria: document.getElementById("categoriaMultijugador").value,
-                dificultad: this.value
-            });
-        }
-    });
-
-    actualizarImpostoresLocal();
-    actualizarDificultadLocal();
-    actualizarImpostoresMultijugador();
-    actualizarDificultadMultijugador();
-
-    document.getElementById("nombreJugadorMultijugador")?.addEventListener("keypress", function(e) {
-        if (e.key === "Enter") continuarMultijugador();
-    });
-
-    document.getElementById("codigoSalaUnirse")?.addEventListener("keypress", function(e) {
-        if (e.key === "Enter") unirseSala();
-    });
+const PORT = process.env.PORT || 5000;
+http.listen(PORT, () => {
+    console.log(`Servidor listo en puerto ${PORT}`);
 });
