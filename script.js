@@ -327,7 +327,7 @@ function revelarImpostorLocal() {
     document.getElementById("impostorReveladoTexto").innerHTML = impostoresTexto;
     document.getElementById("impostorRevelado").classList.remove("hidden");
 
-    document.getElementById("palabraReveladaTexto").textContent = configLocal.palabraActual;
+    document.getElementById("palabraReveladaTextoLocal").textContent = configLocal.palabraActual;
     document.getElementById("palabraReveladaLocal").classList.remove("hidden");
 
     document.querySelector("#pantalla-local-final .revelar-container button").style.display = "none";
