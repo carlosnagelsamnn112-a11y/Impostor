@@ -25,7 +25,7 @@ const palabras = {
         "Medio": ["50 Cent", "AC/DC", "Alejandro Fernández", "Andrés Calamaro", "Anuel AA"],
         "Difícil": ["Adriana Lucía", "Andrea Bocelli", "Aterciopelados", "Avicii", "Binomio de Oro de América"]
     },
-    ClashRoyale: ["Cocinero Real", "Duquesa de dagas", "Cañonero", "Princesa de torre", "Caballero", "Mosquetera", "Mini P.E.K.K.A.", "Gigante", "Esqueletos", "Espíritu de fuego", "Espíritu eléctrico", "Espíritu de hielo", "Espíritu sanador", "Espejo", "Duendes", "Duendes con lanza", "Bombardero", "Murciélagos", "Descarga", "Bola de nieve", "Gólem de hielo", "Berserker", "Barril de barbaros", "Tronco", "Rompemuros", "Arbusto sospechoso", "Furia", "Maldición duende", "Arqueras", "Esbirros", "Flechas", "Lápida", "Cañón", "Megaesbirro", "Ejercito de esqueletos", "Guardias", "Barril de duendes", "Enredadera", "Pandilla de duendes", "Barril de Esqueletos", "Duende lanza dardos", "Princesa", "Minero", "Lanza fuegos", "Terremoto", "Mago de hielo", "Fantasma", "Bandida", "Paquete real", "Gólem de elixir", "Tornado", "Espejo", "Vacío", "Pescador", "Principito", "Choza de duendes", "Jaula del forzudo", "Bola de fuego", "Valquiria", "Ariete de batalla", "Dragones esqueletos", "Torre bombardera", "Morero", "Montapuercos", "Maquina Voladora", "Bebe dragón", "Príncipe oscuro", "Curandera", "Hielo", "Gigante Rúnica", "Veneno", "Torre tesla", "Electrocutadores", "Horno", "Cazador", "Dragon infernal", "Mago Eléctrico", "Demoledor Duende", "Fénix", "Arquero mágico", "Taladradora de duendes", "Leñador", "Bruja nocturna", "Bruja madre", "Rey esqueleto", "Caballero dorado", "Gran minero", "Barbaros", "Mago de fuego", "Torre infernal", "Bruja", "Puercos reales", "Globo Bombástico", "Príncipe", "Horda de esbirros", "Montacarnera", "Dragon eléctrico", "Cementerio", "Pillos", "Lanzarocas", "Verdugo", "Cañón con ruedas", "Maquina de duende", "Reina arquera", "Monje", "Duendenstein", "Cohete", "Gigante noble", "Esqueleto gigante", "Rayo", "Choza de barbaros", "Duende Gigante", "Barbaros de elite", "Ballesta", "Chispitas", "Recolector de elixir", "Emperatriz espiritual", "Bandida líder", "P.E.K.K.A.", "Reclutas reales", "Megacaballero", "Gigante Eléctrico", "Sabueso", "Gólem", "Trio de mosqueteras"]
+    ClashRoyale: ["Cocinero Real", "Duquesa de dagas", "Cañonero", "Princesa de torre", "Caballero"]
 };
 
 function generarPalabra(categoria, dificultad) {
@@ -70,13 +70,28 @@ io.on("connection", socket => {
             impostores: data.impostores,
             categoria: data.categoria,
             dificultad: data.dificultad,
-            jugadores: [{ id: socket.id, nombre: data.nombre, posicion: 1 }],
+            tipoPartida: data.tipoPartida || "amistoso",
+            jugadores: [{ 
+                id: socket.id, 
+                nombre: data.nombre, 
+                posicion: 1,
+                eliminado: false,
+                haVotado: false,
+                voto: null
+            }],
             palabra: null,
             listaParaVer: [],
             listos: [],
             votosImpostor: 0,
             roles: {},
-            estado: "esperando"
+            estado: "esperando",
+            // NUEVO: Para modo votación
+            votacion: {
+                activa: false,
+                votos: {},
+                jugadoresEliminados: [],
+                puntuacionImpostor: 0
+            }
         };
 
         socket.join(data.codigo);
@@ -89,6 +104,7 @@ io.on("connection", socket => {
             impostores: data.impostores,
             categoria: data.categoria,
             dificultad: data.dificultad,
+            tipoPartida: data.tipoPartida || "amistoso",
             jugadores: salas[data.codigo].jugadores
         });
     });
@@ -101,6 +117,7 @@ io.on("connection", socket => {
         sala.impostores = data.impostores;
         sala.categoria = data.categoria;
         sala.dificultad = data.dificultad;
+        sala.tipoPartida = data.tipoPartida;
 
         console.log(`Configuración modificada en ${data.sala}`);
 
@@ -108,7 +125,8 @@ io.on("connection", socket => {
             maxJugadores: sala.maxJugadores,
             impostores: sala.impostores,
             categoria: sala.categoria,
-            dificultad: sala.dificultad
+            dificultad: sala.dificultad,
+            tipoPartida: sala.tipoPartida
         });
 
         io.to(data.sala).emit("jugadoresActualizados", {
@@ -118,6 +136,7 @@ io.on("connection", socket => {
             impostores: sala.impostores,
             categoria: sala.categoria,
             dificultad: sala.dificultad,
+            tipoPartida: sala.tipoPartida,
             jugadores: sala.jugadores
         });
     });
@@ -152,7 +171,14 @@ io.on("connection", socket => {
         }
 
         const posicion = sala.jugadores.length + 1;
-        sala.jugadores.push({ id: socket.id, nombre: data.nombre, posicion: posicion });
+        sala.jugadores.push({ 
+            id: socket.id, 
+            nombre: data.nombre, 
+            posicion: posicion,
+            eliminado: false,
+            haVotado: false,
+            voto: null
+        });
         socket.join(codigo);
 
         console.log(`${data.nombre} se unió a ${codigo} como jugador ${posicion}`);
@@ -164,6 +190,7 @@ io.on("connection", socket => {
             impostores: sala.impostores,
             categoria: sala.categoria,
             dificultad: sala.dificultad,
+            tipoPartida: sala.tipoPartida,
             jugadores: sala.jugadores
         });
 
@@ -174,6 +201,7 @@ io.on("connection", socket => {
             impostores: sala.impostores,
             categoria: sala.categoria,
             dificultad: sala.dificultad,
+            tipoPartida: sala.tipoPartida,
             jugadores: sala.jugadores
         });
     });
@@ -202,14 +230,25 @@ io.on("connection", socket => {
         sala.listos = [];
         sala.votosImpostor = 0;
 
+        // Resetear estado de jugadores
         sala.jugadores.forEach(j => {
-            j._haVotado = false;
-            j._votoImpostor = false;
+            j.eliminado = false;
+            j.haVotado = false;
+            j.voto = null;
         });
+
+        // Resetear votación
+        sala.votacion = {
+            activa: false,
+            votos: {},
+            jugadoresEliminados: [],
+            puntuacionImpostor: 0
+        };
 
         asignarRolesAleatorios(sala);
 
         console.log(`=== Partida iniciada en ${salaCodigo} ===`);
+        console.log(`Tipo: ${sala.tipoPartida}`);
         console.log(`Palabra: ${sala.palabra}`);
         console.log(`Categoría: ${sala.categoria}`);
         console.log(`Jugadores: ${sala.jugadores.length}`);
@@ -220,9 +259,10 @@ io.on("connection", socket => {
             sala: salaCodigo,
             categoria: sala.categoria,
             dificultad: sala.dificultad || "No aplica",
+            tipoPartida: sala.tipoPartida,
             impostores: sala.impostores,
             totalJugadores: sala.jugadores.length,
-            palabra: sala.palabra  // ENVIAR LA PALABRA AL CLIENTE
+            palabra: sala.palabra
         });
     });
 
@@ -252,7 +292,7 @@ io.on("connection", socket => {
             impostores: sala.impostores,
             totalJugadores: sala.jugadores.length,
             posicion: jugador.posicion,
-            palabraReal: sala.palabra  // ENVIAR PALABRA REAL PARA MOSTRAR AL FINAL
+            palabraReal: sala.palabra
         });
     });
 
@@ -271,28 +311,50 @@ io.on("connection", socket => {
         if (sala.listos.length >= sala.jugadores.length) {
             console.log(`Todos están listos en ${salaCodigo}`);
 
-            const impostores = [];
-            for (const [id, rol] of Object.entries(sala.roles)) {
-                if (rol === "IMPOSTOR") {
-                    const impostor = sala.jugadores.find(j => j.id === id);
-                    if (impostor) {
-                        impostores.push({
-                            nombre: impostor.nombre,
-                            posicion: impostor.posicion
-                        });
+            if (sala.tipoPartida === "amistoso") {
+                const impostores = [];
+                for (const [id, rol] of Object.entries(sala.roles)) {
+                    if (rol === "IMPOSTOR") {
+                        const impostor = sala.jugadores.find(j => j.id === id);
+                        if (impostor) {
+                            impostores.push({
+                                nombre: impostor.nombre,
+                                posicion: impostor.posicion
+                            });
+                        }
                     }
                 }
+
+                console.log(`Impostores encontrados: ${impostores.length}`);
+
+                io.to(salaCodigo).emit("todosListos", {
+                    totalListos: sala.listos.length,
+                    totalJugadores: sala.jugadores.length,
+                    todosListos: true,
+                    impostores: impostores,
+                    palabra: sala.palabra
+                });
+            } else {
+                // Modo con votación
+                console.log(`Iniciando votación en ${salaCodigo}`);
+                sala.votacion.activa = true;
+                sala.votacion.votos = {};
+                
+                // Preparar datos para votación
+                const jugadoresVivos = sala.jugadores.filter(j => !j.eliminado);
+                
+                io.to(salaCodigo).emit("iniciarVotacionMultijugador", {
+                    jugadoresVivos: jugadoresVivos.map(j => ({
+                        id: j.id,
+                        nombre: j.nombre,
+                        posicion: j.posicion
+                    })),
+                    jugadoresEliminados: sala.votacion.jugadoresEliminados,
+                    puntuacionImpostor: sala.votacion.puntuacionImpostor,
+                    votosRealizados: 0,
+                    totalJugadores: jugadoresVivos.length
+                });
             }
-
-            console.log(`Impostores encontrados: ${impostores.length}`);
-
-            io.to(salaCodigo).emit("todosListos", {
-                totalListos: sala.listos.length,
-                totalJugadores: sala.jugadores.length,
-                todosListos: true,
-                impostores: impostores,
-                palabra: sala.palabra  // ENVIAR PALABRA
-            });
         } else {
             io.to(salaCodigo).emit("todosListos", {
                 totalListos: sala.listos.length,
@@ -333,9 +395,179 @@ io.on("connection", socket => {
 
             io.to(salaCodigo).emit("impostorRevelado", {
                 impostores: impostores,
-                palabra: sala.palabra  // ENVIAR PALABRA
+                palabra: sala.palabra
             });
         }
+    });
+
+    socket.on("votarJugador", data => {
+        const sala = salas[data.sala];
+        if (!sala || !sala.votacion.activa) return;
+
+        const jugador = sala.jugadores.find(j => j.id === socket.id);
+        if (!jugador || jugador.eliminado || jugador.haVotado) return;
+
+        // Registrar voto
+        jugador.haVotado = true;
+        jugador.voto = data.jugadorId;
+        sala.votacion.votos[socket.id] = data.jugadorId;
+
+        console.log(`${jugador.nombre} votó por jugador ID: ${data.jugadorId}`);
+
+        // Contar votos
+        const jugadoresVivos = sala.jugadores.filter(j => !j.eliminado);
+        const votosRealizados = jugadoresVivos.filter(j => j.haVotado).length;
+
+        // Enviar actualización a todos
+        io.to(data.sala).emit("actualizarVotacionMultijugador", {
+            votosRealizados: votosRealizados,
+            totalJugadores: jugadoresVivos.length
+        });
+
+        // Si todos han votado, procesar resultados
+        if (votosRealizados >= jugadoresVivos.length) {
+            procesarResultadosVotacion(data.sala);
+        }
+    });
+
+    function procesarResultadosVotacion(salaCodigo) {
+        const sala = salas[salaCodigo];
+        if (!sala) return;
+
+        // Contar votos
+        const conteoVotos = {};
+        Object.values(sala.votacion.votos).forEach(jugadorId => {
+            conteoVotos[jugadorId] = (conteoVotos[jugadorId] || 0) + 1;
+        });
+
+        // Encontrar jugador más votado
+        let jugadorMasVotadoId = null;
+        let maxVotos = 0;
+        for (const [jugadorId, votos] of Object.entries(conteoVotos)) {
+            if (votos > maxVotos) {
+                maxVotos = votos;
+                jugadorMasVotadoId = jugadorId;
+            }
+        }
+
+        if (!jugadorMasVotadoId) {
+            // Empate o error
+            console.log("Empate en votación o error");
+            return;
+        }
+
+        const jugadorEliminado = sala.jugadores.find(j => j.id === jugadorMasVotadoId);
+        if (!jugadorEliminado) return;
+
+        const esImpostor = sala.roles[jugadorEliminado.id] === "IMPOSTOR";
+        
+        // Marcar jugador como eliminado
+        jugadorEliminado.eliminado = true;
+        sala.votacion.jugadoresEliminados.push({
+            id: jugadorEliminado.id,
+            nombre: jugadorEliminado.nombre,
+            posicion: jugadorEliminado.posicion
+        });
+
+        // Calcular jugadores restantes
+        const jugadoresVivos = sala.jugadores.filter(j => !j.eliminado);
+        const impostoresVivos = jugadoresVivos.filter(j => sala.roles[j.id] === "IMPOSTOR");
+        const inocentesVivos = jugadoresVivos.length - impostoresVivos.length;
+
+        let juegoTerminado = false;
+        let puntosGanados = 0;
+
+        if (esImpostor) {
+            // Se encontró al impostor
+            juegoTerminado = true;
+            console.log(`Impostor ${jugadorEliminado.nombre} eliminado en ${salaCodigo}`);
+        } else {
+            // Se eliminó a un inocente
+            if (jugadoresVivos.length === 3 && impostoresVivos.length === 1 && inocentesVivos === 2) {
+                // Última ronda: +2 puntos
+                puntosGanados = 2;
+                juegoTerminado = true;
+                console.log(`Última ronda en ${salaCodigo}: impostor gana 2 puntos`);
+            } else {
+                // Ronda normal: +1 punto
+                puntosGanados = 1;
+                juegoTerminado = false;
+                console.log(`Ronda normal en ${salaCodigo}: impostor gana 1 punto`);
+            }
+            sala.votacion.puntuacionImpostor += puntosGanados;
+        }
+
+        // Preparar respuesta
+        const resultado = {
+            jugadorEliminado: {
+                nombre: jugadorEliminado.nombre,
+                posicion: jugadorEliminado.posicion
+            },
+            esImpostor: esImpostor,
+            palabra: sala.palabra,
+            puntuacionImpostor: sala.votacion.puntuacionImpostor,
+            jugadoresRestantes: jugadoresVivos.length,
+            juegoTerminado: juegoTerminado
+        };
+
+        if (!esImpostor && puntosGanados > 0) {
+            resultado.puntosGanados = puntosGanados;
+        }
+
+        // Resetear votos para siguiente ronda si el juego continúa
+        if (!juegoTerminado) {
+            sala.jugadores.forEach(j => {
+                j.haVotado = false;
+                j.voto = null;
+            });
+            sala.votacion.votos = {};
+        } else {
+            sala.votacion.activa = false;
+        }
+
+        // Enviar resultados a todos
+        io.to(salaCodigo).emit("resultadoVotacionMultijugador", resultado);
+    }
+
+    socket.on("iniciarVotacion", salaCodigo => {
+        const sala = salas[salaCodigo];
+        if (!sala || socket.id !== sala.creador) return;
+
+        sala.votacion.activa = true;
+        sala.votacion.votos = {};
+
+        const jugadoresVivos = sala.jugadores.filter(j => !j.eliminado);
+        
+        io.to(salaCodigo).emit("iniciarVotacionMultijugador", {
+            jugadoresVivos: jugadoresVivos.map(j => ({
+                id: j.id,
+                nombre: j.nombre,
+                posicion: j.posicion
+            })),
+            jugadoresEliminados: sala.votacion.jugadoresEliminados,
+            puntuacionImpostor: sala.votacion.puntuacionImpostor,
+            votosRealizados: 0,
+            totalJugadores: jugadoresVivos.length
+        });
+    });
+
+    socket.on("continuarVotacion", salaCodigo => {
+        const sala = salas[salaCodigo];
+        if (!sala || !sala.votacion.activa) return;
+
+        const jugadoresVivos = sala.jugadores.filter(j => !j.eliminado);
+        
+        io.to(salaCodigo).emit("iniciarVotacionMultijugador", {
+            jugadoresVivos: jugadoresVivos.map(j => ({
+                id: j.id,
+                nombre: j.nombre,
+                posicion: j.posicion
+            })),
+            jugadoresEliminados: sala.votacion.jugadoresEliminados,
+            puntuacionImpostor: sala.votacion.puntuacionImpostor,
+            votosRealizados: 0,
+            totalJugadores: jugadoresVivos.length
+        });
     });
 
     socket.on("revelarImpostor", salaCodigo => {
@@ -359,7 +591,7 @@ io.on("connection", socket => {
 
         io.to(salaCodigo).emit("impostorRevelado", {
             impostores: impostores,
-            palabra: sala.palabra  // ENVIAR PALABRA
+            palabra: sala.palabra
         });
     });
 
@@ -373,10 +605,22 @@ io.on("connection", socket => {
         sala.listos = [];
         sala.votosImpostor = 0;
 
+        // Resetear estado de jugadores
         sala.jugadores.forEach(j => {
+            j.eliminado = false;
+            j.haVotado = false;
+            j.voto = null;
             j._haVotado = false;
             j._votoImpostor = false;
         });
+
+        // Resetear votación pero mantener puntuación
+        sala.votacion = {
+            activa: false,
+            votos: {},
+            jugadoresEliminados: [],
+            puntuacionImpostor: sala.votacion.puntuacionImpostor // Mantener puntuación
+        };
 
         asignarRolesAleatorios(sala);
 
@@ -387,9 +631,10 @@ io.on("connection", socket => {
             sala: salaCodigo,
             categoria: sala.categoria,
             dificultad: sala.dificultad || "No aplica",
+            tipoPartida: sala.tipoPartida,
             impostores: sala.impostores,
             totalJugadores: sala.jugadores.length,
-            palabra: sala.palabra  // ENVIAR PALABRA
+            palabra: sala.palabra
         });
     });
 
@@ -403,8 +648,17 @@ io.on("connection", socket => {
         sala.listos = [];
         sala.votosImpostor = 0;
         sala.roles = {};
+        sala.votacion = {
+            activa: false,
+            votos: {},
+            jugadoresEliminados: [],
+            puntuacionImpostor: 0
+        };
 
         sala.jugadores.forEach(j => {
+            j.eliminado = false;
+            j.haVotado = false;
+            j.voto = null;
             j._haVotado = false;
             j._votoImpostor = false;
         });
@@ -429,6 +683,7 @@ io.on("connection", socket => {
             delete salas[salaCodigo];
             console.log(`Sala ${salaCodigo} eliminada por el creador`);
         } else if (sala.jugadores.length > 0) {
+            // Reasignar posiciones
             sala.jugadores.forEach((j, index) => {
                 j.posicion = index + 1;
             });
@@ -440,6 +695,7 @@ io.on("connection", socket => {
                 impostores: sala.impostores,
                 categoria: sala.categoria,
                 dificultad: sala.dificultad,
+                tipoPartida: sala.tipoPartida,
                 jugadores: sala.jugadores
             });
         } else {
@@ -474,6 +730,7 @@ io.on("connection", socket => {
                         impostores: sala.impostores,
                         categoria: sala.categoria,
                         dificultad: sala.dificultad,
+                        tipoPartida: sala.tipoPartida,
                         jugadores: sala.jugadores
                     });
                 } else {
