@@ -371,6 +371,8 @@ button:disabled {
   border: 1px solid #333;
 }
 
+/* ========== MODALES ========== */
+
 .modal-salida {
   position: fixed;
   inset: 0;
@@ -406,6 +408,333 @@ button:disabled {
   min-width: 120px;
 }
 
+/* Modal de Votación */
+.modal-votacion {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.95);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1001;
+  backdrop-filter: blur(5px);
+  padding: 15px;
+}
+
+.modal-votacion-box {
+  background: #111;
+  padding: 20px;
+  border-radius: 12px;
+  text-align: center;
+  max-width: 500px;
+  width: 100%;
+  border: 1px solid #333;
+  box-shadow: 0 15px 35px rgba(0, 0, 0, 0.9);
+  max-height: 90vh;
+  overflow-y: auto;
+}
+
+.modal-votacion-titulo {
+  font-size: 22px;
+  color: white;
+  margin-top: 0;
+  margin-bottom: 15px;
+  font-weight: 300;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+
+.modal-votacion-subtitulo {
+  font-size: 16px;
+  color: #aaa;
+  margin-bottom: 25px;
+  font-weight: 400;
+}
+
+/* Opciones de Voto */
+.opcion-voto {
+  background: #1a1a1a;
+  border: 1px solid #333;
+  border-radius: 8px;
+  padding: 15px;
+  margin: 10px 0;
+  cursor: pointer;
+  transition: all 0.2s;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  text-align: left;
+}
+
+.opcion-voto:hover {
+  background: #222;
+  border-color: #444;
+  transform: translateY(-2px);
+}
+
+.opcion-voto.seleccionado {
+  background: rgba(0, 204, 255, 0.1);
+  border-color: #00ccff;
+  box-shadow: 0 0 15px rgba(0, 204, 255, 0.3);
+}
+
+.voto-jugador-info {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+  flex: 1;
+}
+
+.voto-numero {
+  background: #333;
+  color: white;
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 500;
+  font-size: 14px;
+  flex-shrink: 0;
+}
+
+.opcion-voto.seleccionado .voto-numero {
+  background: #00ccff;
+  color: #000;
+}
+
+.voto-nombre {
+  color: white;
+  font-size: 16px;
+  font-weight: 400;
+}
+
+.opcion-voto.seleccionado .voto-nombre {
+  color: #00ccff;
+  font-weight: 500;
+}
+
+.voto-selector {
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  border: 2px solid #444;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.voto-circulo {
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  background: transparent;
+  transition: all 0.2s;
+}
+
+.opcion-voto.seleccionado .voto-circulo {
+  background: #00ccff;
+  box-shadow: 0 0 8px rgba(0, 204, 255, 0.8);
+}
+
+.opcion-voto.seleccionado .voto-selector {
+  border-color: #00ccff;
+}
+
+/* Contador de Votos */
+.contador-votos {
+  background: #1a1a1a;
+  border: 1px solid #333;
+  border-radius: 10px;
+  padding: 15px;
+  margin: 20px 0;
+  text-align: center;
+}
+
+.contador-titulo {
+  font-size: 16px;
+  color: #aaa;
+  margin-bottom: 10px;
+  font-weight: 400;
+}
+
+.contador-numeros {
+  font-size: 28px;
+  color: white;
+  font-weight: 300;
+  margin: 10px 0;
+}
+
+.contador-numeros span {
+  color: #00ccff;
+  font-weight: 500;
+}
+
+.contador-texto {
+  font-size: 14px;
+  color: #777;
+  margin-top: 5px;
+}
+
+/* Resultados de Votación */
+.resultado-votacion {
+  background: #1a1a1a;
+  border: 1px solid #333;
+  border-radius: 10px;
+  padding: 20px;
+  margin: 20px 0;
+}
+
+.resultado-titulo {
+  font-size: 18px;
+  color: #00ccff;
+  margin-bottom: 15px;
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+
+.resultado-detalle {
+  font-size: 24px;
+  color: white;
+  font-weight: 300;
+  margin: 15px 0;
+}
+
+.jugador-sospechoso {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 15px;
+  margin: 15px 0;
+}
+
+.sospechoso-posicion {
+  background: #ff3333;
+  color: white;
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 500;
+  font-size: 18px;
+}
+
+.sospechoso-nombre {
+  font-size: 28px;
+  color: #ff3333;
+  font-weight: 500;
+}
+
+.votos-recibidos {
+  font-size: 16px;
+  color: #aaa;
+  margin-top: 10px;
+  font-style: italic;
+}
+
+/* Detalle de Votos */
+.detalle-votos {
+  background: #1a1a1a;
+  border: 1px solid #333;
+  border-radius: 10px;
+  padding: 15px;
+  margin: 20px 0;
+}
+
+.detalle-titulo {
+  font-size: 16px;
+  color: #aaa;
+  margin-bottom: 15px;
+  text-align: center;
+  font-weight: 400;
+}
+
+.voto-detalle-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 12px 0;
+  border-bottom: 1px solid #222;
+}
+
+.voto-detalle-item:last-child {
+  border-bottom: none;
+}
+
+.voto-detalle-info {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.voto-detalle-posicion {
+  background: #333;
+  color: white;
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 500;
+  font-size: 14px;
+}
+
+.voto-detalle-nombre {
+  color: white;
+  font-size: 16px;
+  font-weight: 400;
+}
+
+.voto-detalle-cantidad {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.voto-contador {
+  font-size: 20px;
+  color: #00ccff;
+  font-weight: 500;
+}
+
+.voto-texto {
+  font-size: 14px;
+  color: #777;
+}
+
+/* Pantalla de Espera de Votos */
+.pantalla-espera-votos {
+  text-align: center;
+  padding: 30px 20px;
+}
+
+.espera-icono {
+  font-size: 48px;
+  margin: 20px 0;
+  color: #00ccff;
+  animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+  0% { opacity: 0.6; }
+  50% { opacity: 1; }
+  100% { opacity: 0.6; }
+}
+
+.espera-mensaje {
+  font-size: 18px;
+  color: #aaa;
+  margin: 20px 0;
+  line-height: 1.5;
+}
+
+/* Inputs */
 input[type="text"] {
   width: 100%;
   padding: 14px;
@@ -473,87 +802,6 @@ input[type="text"]::placeholder {
   border-bottom: none;
 }
 
-/* Estilos para lista de votación */
-.lista-votacion-item {
-  padding: 15px;
-  margin: 8px 0;
-  background: #222;
-  border-radius: 8px;
-  border: 1px solid #333;
-  cursor: pointer;
-  transition: all 0.2s;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-}
-
-.lista-votacion-item:hover {
-  background: #2a2a2a;
-  border-color: #444;
-}
-
-.lista-votacion-item.seleccionado {
-  background: #1a3a2a;
-  border-color: #4CAF50;
-}
-
-.lista-votacion-item.eliminado {
-  background: rgba(255, 51, 51, 0.1);
-  border-color: #ff3333;
-  cursor: not-allowed;
-  opacity: 0.7;
-}
-
-.lista-votacion-item .check-voto {
-  color: #4CAF50;
-  font-weight: bold;
-  font-size: 18px;
-}
-
-/* Estilos para lista de eliminados */
-.lista-eliminados {
-  max-height: 150px;
-  overflow-y: auto;
-  margin-top: 10px;
-}
-
-.eliminado-item {
-  padding: 8px 12px;
-  margin: 5px 0;
-  background: rgba(255, 0, 0, 0.1);
-  border-radius: 5px;
-  border-left: 3px solid #ff3333;
-  font-size: 14px;
-  color: #ff9999;
-}
-
-/* Estilos para puntuación */
-.puntuacion-display {
-  font-size: 18px;
-  padding: 12px;
-  background: rgba(0, 204, 255, 0.1);
-  border-radius: 8px;
-  border: 1px solid #00ccff;
-  margin: 10px 0;
-  color: #00ccff;
-  font-weight: 500;
-}
-
-/* Indicadores de estado */
-.estado-votacion {
-  font-size: 14px;
-  color: #aaa;
-  margin-top: 10px;
-  padding: 8px;
-  background: rgba(255, 255, 255, 0.05);
-  border-radius: 5px;
-}
-
-.estado-votacion.activo {
-  color: #4CAF50;
-  background: rgba(76, 175, 80, 0.1);
-}
-
 /* Responsive improvements */
 @media (min-width: 768px) {
   body {
@@ -614,6 +862,10 @@ input[type="text"]::placeholder {
 
   .header-title {
       font-size: 22px;
+  }
+  
+  .modal-votacion-box {
+      padding: 30px;
   }
 }
 
@@ -701,7 +953,7 @@ input[type="text"]::placeholder {
   100% { opacity: 1; }
 }
 
-button:focus, .card.opcion:focus, .lista-votacion-item:focus {
+button:focus, .card.opcion:focus {
   animation: pulse 1.5s infinite;
 }
 
@@ -717,11 +969,6 @@ button:focus, .card.opcion:focus, .lista-votacion-item:focus {
       background: #1a1a1a;
   }
 
-  .lista-votacion-item:hover {
-      transform: none;
-      background: #222;
-  }
-
   button:active {
       background: #2a2a2a;
       transform: scale(0.98);
@@ -729,11 +976,6 @@ button:focus, .card.opcion:focus, .lista-votacion-item:focus {
 
   .card.opcion:active {
       background: #222;
-      transform: scale(0.98);
-  }
-
-  .lista-votacion-item:active {
-      background: #2a2a2a;
       transform: scale(0.98);
   }
 }
@@ -760,33 +1002,4 @@ button:focus, .card.opcion:focus, .lista-votacion-item:focus {
 
 @keyframes spin {
   to { transform: translate(-50%, -50%) rotate(360deg); }
-}
-
-/* Animaciones para resultados */
-@keyframes fadeIn {
-  from { opacity: 0; transform: translateY(10px); }
-  to { opacity: 1; transform: translateY(0); }
-}
-
-.impostor-info, .resultado-votacion {
-  animation: fadeIn 0.5s ease-out;
-}
-
-/* Scrollbar personalizado */
-::-webkit-scrollbar {
-  width: 8px;
-}
-
-::-webkit-scrollbar-track {
-  background: #1a1a1a;
-  border-radius: 4px;
-}
-
-::-webkit-scrollbar-thumb {
-  background: #333;
-  border-radius: 4px;
-}
-
-::-webkit-scrollbar-thumb:hover {
-  background: #444;
 }
