@@ -35,6 +35,15 @@
             <button class="btn-atras" onclick="confirmarSalirSala()">INICIO</button>
         </div>
 
+        <!-- NUEVO: Tipo de Partida -->
+        <div class="configuracion">
+            <label for="tipoPartidaLocal">Tipo de Partida:</label>
+            <select id="tipoPartidaLocal" class="select-config">
+                <option value="amistoso">Amistoso</option>
+                <option value="votacion">Con Votación</option>
+            </select>
+        </div>
+
         <div class="configuracion">
             <label for="cantidadJugadoresLocal">Jugadores (3-15):</label>
             <select id="cantidadJugadoresLocal" class="select-config">
@@ -118,6 +127,10 @@
             <div class="nombre-jugador-display" id="nombreJugadorLocal">Jugador 1</div>
             <div class="info-detalle">
                 <div class="info-item">
+                    <span class="info-label">Tipo:</span>
+                    <span id="tipoPartidaDisplayLocal" class="info-valor">Amistoso</span>
+                </div>
+                <div class="info-item">
                     <span class="info-label">Categoría:</span>
                     <span id="categoriaNombreLocal" class="info-valor">Objetos</span>
                 </div>
@@ -153,6 +166,10 @@
             <div class="nombre-jugador-display" id="nombreJugadorPalabra">Jugador 1</div>
             <div class="info-detalle">
                 <div class="info-item">
+                    <span class="info-label">Tipo:</span>
+                    <span id="tipoPartidaDisplayPalabra" class="info-valor">Amistoso</span>
+                </div>
+                <div class="info-item">
                     <span class="info-label">Categoría:</span>
                     <span id="categoriaPalabra" class="info-valor">Objetos</span>
                 </div>
@@ -179,8 +196,8 @@
         </div>
     </div>
 
-    <!-- Menú Final Local -->
-    <div class="screen hidden" id="pantalla-local-final">
+    <!-- Menú Final Local - AMISTOSO -->
+    <div class="screen hidden" id="pantalla-local-final-amistoso">
         <div class="header-container">
             <div style="width: 70px;"></div>
             <h2 class="header-title">JUEGO TERMINADO</h2>
@@ -189,9 +206,9 @@
 
         <!-- Contenedor para revelar impostor -->
         <div class="revelar-container">
-            <div class="impostor-info hidden" id="impostorRevelado">
+            <div class="impostor-info hidden" id="impostorReveladoLocal">
                 <div class="impostor-titulo" id="impostorTituloLocal">EL IMPOSTOR ES:</div>
-                <div id="impostorReveladoTexto" class="impostor-nombre">Jugador 1</div>
+                <div id="impostorReveladoTextoLocal" class="impostor-nombre">Jugador 1</div>
             </div>
 
             <div class="impostor-info hidden" id="palabraReveladaLocal" style="margin-top: 20px; border-color: #4CAF50; background: rgba(76, 175, 80, 0.05);">
@@ -207,6 +224,58 @@
         <div class="row-buttons">
             <button onclick="volveraJugarLocal()">VOLVER A JUGAR</button>
             <button onclick="volverConfiguracionLocal()">CONFIGURACIÓN</button>
+        </div>
+    </div>
+
+    <!-- Votación Local - CON VOTACIÓN -->
+    <div class="screen hidden" id="pantalla-local-votacion">
+        <div class="header-container">
+            <div style="width: 70px;"></div>
+            <h2 class="header-title">VOTACIÓN</h2>
+            <button class="btn-atras" onclick="confirmarSalirSala()">INICIO</button>
+        </div>
+
+        <!-- Jugadores Eliminados -->
+        <div style="background: rgba(255, 0, 0, 0.1); padding: 15px; border-radius: 8px; margin: 15px 0; border: 1px solid #ff3333;">
+            <h3 style="margin-top: 0; color: #ff6666;">🎯 ELIMINADOS (<span id="contadorEliminadosLocal">0</span>)</h3>
+            <div id="listaEliminadosLocal" style="color: #ff9999; font-size: 14px;"></div>
+        </div>
+
+        <!-- Puntuación -->
+        <div style="background: rgba(0, 204, 255, 0.1); padding: 15px; border-radius: 8px; margin: 15px 0; border: 1px solid #00ccff;">
+            <h3 style="margin-top: 0; color: #00ccff;">🏆 PUNTUACIÓN</h3>
+            <div id="puntuacionLocal" style="color: white; font-size: 16px;">Impostor: 0 puntos</div>
+        </div>
+
+        <!-- Lista para votar -->
+        <div style="background: #1a1a1a; padding: 15px; border-radius: 8px; margin: 15px 0; border: 1px solid #333;">
+            <h3 style="margin-top: 0; color: white;">VOTAR CONTRA:</h3>
+            <div id="listaVotacionLocal"></div>
+        </div>
+
+        <div class="row">
+            <button id="btnVotarLocal" onclick="procesarVotoLocal()" disabled>🗳️ VOTAR</button>
+        </div>
+
+        <div style="margin-top: 20px; color: #777; font-size: 14px; text-align: center;">
+            Discute con los demás y selecciona un jugador para votar
+        </div>
+    </div>
+
+    <!-- Resultado Votación Local -->
+    <div class="screen hidden" id="pantalla-local-resultado-votacion">
+        <div class="header-container">
+            <div style="width: 70px;"></div>
+            <h2 class="header-title">RESULTADO</h2>
+            <button class="btn-atras" onclick="confirmarSalirSala()">INICIO</button>
+        </div>
+
+        <div id="resultadoVotacionLocal" style="padding: 20px; background: #1a1a1a; border-radius: 10px; border: 1px solid #333; margin: 20px 0;">
+            <!-- Se llena dinámicamente -->
+        </div>
+
+        <div id="opcionesVotacionLocal" class="row-buttons">
+            <!-- Se llena dinámicamente -->
         </div>
     </div>
 
@@ -260,6 +329,15 @@
                         id="codigoSalaCreador">1A2B3</span></div>
             </div>
             <button class="btn-atras" onclick="confirmarSalirSala()">INICIO</button>
+        </div>
+
+        <!-- NUEVO: Tipo de Partida -->
+        <div class="configuracion">
+            <label for="tipoPartidaMultijugador">Tipo de Partida:</label>
+            <select id="tipoPartidaMultijugador" class="select-config">
+                <option value="amistoso">Amistoso</option>
+                <option value="votacion">Con Votación</option>
+            </select>
         </div>
 
         <div class="configuracion">
@@ -317,7 +395,7 @@
         </div>
 
         <div style="background: #1a1a1a; padding: 15px; border-radius: 8px; margin: 15px 0; border: 1px solid #333;">
-            <h3 style="margin-top: 0; color: white; margin-bottom: 10px;">JUGADORES (<span
+            <h3 style="margin-top: 0; color: white;">JUGADORES (<span
                     id="jugadoresActuales">0</span>/<span id="maxJugadoresDisplay">4</span>)</h3>
             <div id="listaJugadoresLobby"></div>
         </div>
@@ -359,12 +437,12 @@
         </div>
 
         <div style="background: #1a1a1a; padding: 15px; border-radius: 8px; margin: 15px 0; border: 1px solid #333;">
-            <h3 style="margin-top: 0; color: white; margin-bottom: 10px;">CONFIGURACIÓN</h3>
+            <h3 style="margin-top: 0; color: white;">CONFIGURACIÓN</h3>
             <div id="configResumen"></div>
         </div>
 
         <div style="background: #1a1a1a; padding: 15px; border-radius: 8px; border: 1px solid #333;">
-            <h3 style="margin-top: 0; color: white; margin-bottom: 10px;">JUGADORES (<span
+            <h3 style="margin-top: 0; color: white;">JUGADORES (<span
                     id="jugadoresActualesUnido">0</span>/<span id="maxJugadoresDisplayUnido">4</span>)</h3>
             <div id="listaJugadoresUnido"></div>
         </div>
@@ -390,6 +468,10 @@
         <div class="info-jugador">
             <div class="nombre-jugador-display" id="nombreJugadorMultijugadorVer">Jugador</div>
             <div class="info-detalle">
+                <div class="info-item">
+                    <span class="info-label">Tipo:</span>
+                    <span id="tipoPartidaDisplayVer" class="info-valor">Amistoso</span>
+                </div>
                 <div class="info-item">
                     <span class="info-label">Categoría:</span>
                     <span id="categoriaJugadorMultijugadorVer" class="info-valor">Categoría</span>
@@ -434,6 +516,10 @@
             <div class="nombre-jugador-display" id="nombreJugadorMultijugadorRevelado">Jugador</div>
             <div class="info-detalle">
                 <div class="info-item">
+                    <span class="info-label">Tipo:</span>
+                    <span id="tipoPartidaDisplayRevelado" class="info-valor">Amistoso</span>
+                </div>
+                <div class="info-item">
                     <span class="info-label">Categoría:</span>
                     <span id="categoriaJugadorMultijugadorRevelado" class="info-valor">Categoría</span>
                 </div>
@@ -459,39 +545,93 @@
         </div>
     </div>
 
-    <!-- Pantalla Final Multijugador -->
-    <div class="screen hidden" id="multijugador-final">
+    <!-- Pantalla Final Multijugador - AMISTOSO -->
+    <div class="screen hidden" id="multijugador-final-amistoso">
         <div class="header-container">
             <div style="width: 70px;"></div>
             <div style="text-align: center; flex: 1;">
                 <h2 class="header-title">FIN DEL JUEGO</h2>
                 <div style="font-size: 16px; color: #00ccff; margin-top: 5px; font-weight: 500;">ID: <span
-                        id="codigoTextoFinal">-</span></div>
+                        id="codigoTextoFinalAmistoso">-</span></div>
             </div>
             <button class="btn-atras" onclick="confirmarSalirSala()">INICIO</button>
         </div>
 
         <!-- Contenedor para revelar impostor -->
         <div class="revelar-container">
-            <div class="impostor-info hidden" id="impostorReveladoMultijugador">
-                <div class="impostor-titulo" id="impostorTituloMultijugador">EL IMPOSTOR ES:</div>
-                <div id="impostorReveladoTextoMultijugador" class="impostor-nombre">Jugador</div>
+            <div class="impostor-info hidden" id="impostorReveladoMultijugadorAmistoso">
+                <div class="impostor-titulo" id="impostorTituloMultijugadorAmistoso">EL IMPOSTOR ES:</div>
+                <div id="impostorReveladoTextoMultijugadorAmistoso" class="impostor-nombre">Jugador</div>
             </div>
 
-            <!-- CORREGIDO: ID único para palabra en multijugador -->
-            <div class="impostor-info hidden" id="palabraReveladaMultijugador" style="margin-top: 20px; border-color: #4CAF50; background: rgba(76, 175, 80, 0.05);">
+            <div class="impostor-info hidden" id="palabraReveladaMultijugadorAmistoso" style="margin-top: 20px; border-color: #4CAF50; background: rgba(76, 175, 80, 0.05);">
                 <div class="impostor-titulo" style="color: #4CAF50;">LA PALABRA ERA:</div>
-                <div id="palabraReveladaTextoMultijugador" class="impostor-nombre" style="color: #4CAF50;">Palabra</div>
+                <div id="palabraReveladaTextoMultijugadorAmistoso" class="impostor-nombre" style="color: #4CAF50;">Palabra</div>
             </div>
 
             <div class="row">
-                <button id="btnVotarImpostor" onclick="votarImpostor()">🔍 REVELAR IMPOSTOR Y PALABRA</button>
+                <button id="btnVotarImpostorAmistoso" onclick="votarImpostor()">🔍 REVELAR IMPOSTOR Y PALABRA</button>
             </div>
         </div>
 
-        <div class="row-buttons" id="opcionesCreador" style="display: none;">
+        <div class="row-buttons" id="opcionesCreadorAmistoso" style="display: none;">
             <button onclick="volveraJugarMultijugador()">VOLVER A JUGAR</button>
             <button onclick="volverConfiguracionMultijugador()">CONFIGURACIÓN</button>
+        </div>
+    </div>
+
+    <!-- Votación Multijugador - CON VOTACIÓN -->
+    <div class="screen hidden" id="multijugador-votacion">
+        <div class="header-container">
+            <div style="width: 70px;"></div>
+            <h2 class="header-title">VOTACIÓN</h2>
+            <button class="btn-atras" onclick="confirmarSalirSala()">INICIO</button>
+        </div>
+
+        <!-- Jugadores Eliminados -->
+        <div style="background: rgba(255, 0, 0, 0.1); padding: 15px; border-radius: 8px; margin: 15px 0; border: 1px solid #ff3333;">
+            <h3 style="margin-top: 0; color: #ff6666;">🎯 ELIMINADOS (<span id="contadorEliminadosMultijugador">0</span>)</h3>
+            <div id="listaEliminadosMultijugador" style="color: #ff9999; font-size: 14px;"></div>
+        </div>
+
+        <!-- Puntuación -->
+        <div style="background: rgba(0, 204, 255, 0.1); padding: 15px; border-radius: 8px; margin: 15px 0; border: 1px solid #00ccff;">
+            <h3 style="margin-top: 0; color: #00ccff;">🏆 PUNTUACIÓN</h3>
+            <div id="puntuacionMultijugador" style="color: white; font-size: 16px;">Impostor: 0 puntos</div>
+        </div>
+
+        <!-- Lista para votar -->
+        <div style="background: #1a1a1a; padding: 15px; border-radius: 8px; margin: 15px 0; border: 1px solid #333;">
+            <h3 style="margin-top: 0; color: white;">VOTAR CONTRA:</h3>
+            <div id="listaVotacionMultijugador"></div>
+            <div id="estadoVotacionMultijugador" style="margin-top: 10px; color: #aaa; font-size: 14px;">
+                Esperando votos...
+            </div>
+        </div>
+
+        <div class="row">
+            <button id="btnVotarMultijugador" onclick="procesarVotoMultijugador()" disabled>🗳️ VOTAR</button>
+        </div>
+
+        <div style="margin-top: 20px; color: #777; font-size: 14px; text-align: center;">
+            Discute con los demás y selecciona un jugador para votar
+        </div>
+    </div>
+
+    <!-- Resultado Votación Multijugador -->
+    <div class="screen hidden" id="multijugador-resultado-votacion">
+        <div class="header-container">
+            <div style="width: 70px;"></div>
+            <h2 class="header-title">RESULTADO VOTACIÓN</h2>
+            <button class="btn-atras" onclick="confirmarSalirSala()">INICIO</button>
+        </div>
+
+        <div id="resultadoVotacionMultijugador" style="padding: 20px; background: #1a1a1a; border-radius: 10px; border: 1px solid #333; margin: 20px 0;">
+            <!-- Se llena dinámicamente -->
+        </div>
+
+        <div id="opcionesVotacionMultijugador" class="row-buttons">
+            <!-- Se llena dinámicamente -->
         </div>
     </div>
 
