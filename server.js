@@ -70,28 +70,14 @@ io.on("connection", socket => {
             impostores: data.impostores,
             categoria: data.categoria,
             dificultad: data.dificultad,
-            tipoPartida: data.tipoPartida || "amistoso",
-            jugadores: [{ 
-                id: socket.id, 
-                nombre: data.nombre, 
-                posicion: 1,
-                eliminado: false,
-                haVotado: false,
-                voto: null
-            }],
+            jugadores: [{ id: socket.id, nombre: data.nombre, posicion: 1 }],
             palabra: null,
             listaParaVer: [],
             listos: [],
-            votosImpostor: 0,
-            roles: {},
-            estado: "esperando",
-            // NUEVO: Para modo votación
-            votacion: {
-                activa: false,
-                votos: {},
-                jugadoresEliminados: [],
-                puntuacionImpostor: 0
-            }
+            votos: {},
+            votosEmitidos: 0,
+            votosPorJugador: {},
+            estado: "esperando"
         };
 
         socket.join(data.codigo);
@@ -104,7 +90,6 @@ io.on("connection", socket => {
             impostores: data.impostores,
             categoria: data.categoria,
             dificultad: data.dificultad,
-            tipoPartida: data.tipoPartida || "amistoso",
             jugadores: salas[data.codigo].jugadores
         });
     });
@@ -117,7 +102,6 @@ io.on("connection", socket => {
         sala.impostores = data.impostores;
         sala.categoria = data.categoria;
         sala.dificultad = data.dificultad;
-        sala.tipoPartida = data.tipoPartida;
 
         console.log(`Configuración modificada en ${data.sala}`);
 
@@ -125,8 +109,7 @@ io.on("connection", socket => {
             maxJugadores: sala.maxJugadores,
             impostores: sala.impostores,
             categoria: sala.categoria,
-            dificultad: sala.dificultad,
-            tipoPartida: sala.tipoPartida
+            dificultad: sala.dificultad
         });
 
         io.to(data.sala).emit("jugadoresActualizados", {
@@ -136,7 +119,6 @@ io.on("connection", socket => {
             impostores: sala.impostores,
             categoria: sala.categoria,
             dificultad: sala.dificultad,
-            tipoPartida: sala.tipoPartida,
             jugadores: sala.jugadores
         });
     });
@@ -171,14 +153,7 @@ io.on("connection", socket => {
         }
 
         const posicion = sala.jugadores.length + 1;
-        sala.jugadores.push({ 
-            id: socket.id, 
-            nombre: data.nombre, 
-            posicion: posicion,
-            eliminado: false,
-            haVotado: false,
-            voto: null
-        });
+        sala.jugadores.push({ id: socket.id, nombre: data.nombre, posicion: posicion });
         socket.join(codigo);
 
         console.log(`${data.nombre} se unió a ${codigo} como jugador ${posicion}`);
@@ -190,7 +165,6 @@ io.on("connection", socket => {
             impostores: sala.impostores,
             categoria: sala.categoria,
             dificultad: sala.dificultad,
-            tipoPartida: sala.tipoPartida,
             jugadores: sala.jugadores
         });
 
@@ -201,7 +175,6 @@ io.on("connection", socket => {
             impostores: sala.impostores,
             categoria: sala.categoria,
             dificultad: sala.dificultad,
-            tipoPartida: sala.tipoPartida,
             jugadores: sala.jugadores
         });
     });
@@ -228,27 +201,18 @@ io.on("connection", socket => {
         sala.palabra = generarPalabra(sala.categoria, sala.dificultad);
         sala.listaParaVer = [...sala.jugadores.map(j => j.id)];
         sala.listos = [];
-        sala.votosImpostor = 0;
+        sala.votos = {};
+        sala.votosEmitidos = 0;
+        sala.votosPorJugador = {};
 
-        // Resetear estado de jugadores
+        // Inicializar votos
         sala.jugadores.forEach(j => {
-            j.eliminado = false;
-            j.haVotado = false;
-            j.voto = null;
+            sala.votosPorJugador[j.id] = 0;
         });
-
-        // Resetear votación
-        sala.votacion = {
-            activa: false,
-            votos: {},
-            jugadoresEliminados: [],
-            puntuacionImpostor: 0
-        };
 
         asignarRolesAleatorios(sala);
 
         console.log(`=== Partida iniciada en ${salaCodigo} ===`);
-        console.log(`Tipo: ${sala.tipoPartida}`);
         console.log(`Palabra: ${sala.palabra}`);
         console.log(`Categoría: ${sala.categoria}`);
         console.log(`Jugadores: ${sala.jugadores.length}`);
@@ -259,7 +223,6 @@ io.on("connection", socket => {
             sala: salaCodigo,
             categoria: sala.categoria,
             dificultad: sala.dificultad || "No aplica",
-            tipoPartida: sala.tipoPartida,
             impostores: sala.impostores,
             totalJugadores: sala.jugadores.length,
             palabra: sala.palabra
@@ -311,50 +274,12 @@ io.on("connection", socket => {
         if (sala.listos.length >= sala.jugadores.length) {
             console.log(`Todos están listos en ${salaCodigo}`);
 
-            if (sala.tipoPartida === "amistoso") {
-                const impostores = [];
-                for (const [id, rol] of Object.entries(sala.roles)) {
-                    if (rol === "IMPOSTOR") {
-                        const impostor = sala.jugadores.find(j => j.id === id);
-                        if (impostor) {
-                            impostores.push({
-                                nombre: impostor.nombre,
-                                posicion: impostor.posicion
-                            });
-                        }
-                    }
-                }
-
-                console.log(`Impostores encontrados: ${impostores.length}`);
-
-                io.to(salaCodigo).emit("todosListos", {
-                    totalListos: sala.listos.length,
-                    totalJugadores: sala.jugadores.length,
-                    todosListos: true,
-                    impostores: impostores,
-                    palabra: sala.palabra
-                });
-            } else {
-                // Modo con votación
-                console.log(`Iniciando votación en ${salaCodigo}`);
-                sala.votacion.activa = true;
-                sala.votacion.votos = {};
-                
-                // Preparar datos para votación
-                const jugadoresVivos = sala.jugadores.filter(j => !j.eliminado);
-                
-                io.to(salaCodigo).emit("iniciarVotacionMultijugador", {
-                    jugadoresVivos: jugadoresVivos.map(j => ({
-                        id: j.id,
-                        nombre: j.nombre,
-                        posicion: j.posicion
-                    })),
-                    jugadoresEliminados: sala.votacion.jugadoresEliminados,
-                    puntuacionImpostor: sala.votacion.puntuacionImpostor,
-                    votosRealizados: 0,
-                    totalJugadores: jugadoresVivos.length
-                });
-            }
+            io.to(salaCodigo).emit("todosListos", {
+                totalListos: sala.listos.length,
+                totalJugadores: sala.jugadores.length,
+                todosListos: true,
+                palabra: sala.palabra
+            });
         } else {
             io.to(salaCodigo).emit("todosListos", {
                 totalListos: sala.listos.length,
@@ -364,68 +289,50 @@ io.on("connection", socket => {
         }
     });
 
-    socket.on("votarImpostor", salaCodigo => {
-        const sala = salas[salaCodigo];
-        if (!sala) return;
-
-        const jugador = sala.jugadores.find(j => j.id === socket.id);
-        if (!jugador) return;
-
-        if (!jugador._votoImpostor) {
-            sala.votosImpostor++;
-            jugador._votoImpostor = true;
-            console.log(`${jugador.nombre} votó impostor: ${sala.votosImpostor}/${sala.jugadores.length}`);
-        }
-
-        if (sala.votosImpostor >= sala.jugadores.length) {
-            const impostores = [];
-            for (const [id, rol] of Object.entries(sala.roles)) {
-                if (rol === "IMPOSTOR") {
-                    const impostor = sala.jugadores.find(j => j.id === id);
-                    if (impostor) {
-                        impostores.push({
-                            nombre: impostor.nombre,
-                            posicion: impostor.posicion
-                        });
-                    }
-                }
-            }
-
-            console.log(`Revelando ${impostores.length} impostor(es) por votación`);
-
-            io.to(salaCodigo).emit("impostorRevelado", {
-                impostores: impostores,
-                palabra: sala.palabra
-            });
-        }
-    });
+    // ========== SISTEMA DE VOTACIÓN ==========
 
     socket.on("votarJugador", data => {
         const sala = salas[data.sala];
-        if (!sala || !sala.votacion.activa) return;
+        if (!sala || sala.estado !== "jugando") return;
 
-        const jugador = sala.jugadores.find(j => j.id === socket.id);
-        if (!jugador || jugador.eliminado || jugador.haVotado) return;
+        const jugadorVotante = sala.jugadores.find(j => j.id === socket.id);
+        if (!jugadorVotante) return;
+
+        // Verificar si ya votó
+        if (sala.votos[socket.id]) {
+            console.log(`${jugadorVotante.nombre} ya votó`);
+            return;
+        }
 
         // Registrar voto
-        jugador.haVotado = true;
-        jugador.voto = data.jugadorId;
-        sala.votacion.votos[socket.id] = data.jugadorId;
+        sala.votos[socket.id] = {
+            jugadorVotadoId: data.jugadorVotadoId,
+            jugadorVotadoNombre: data.jugadorVotadoNombre,
+            posicion: data.posicion
+        };
 
-        console.log(`${jugador.nombre} votó por jugador ID: ${data.jugadorId}`);
+        // Si no es abstención, sumar voto al jugador
+        if (data.jugadorVotadoId !== "abstencion") {
+            const jugadorVotado = sala.jugadores.find(j => j.id === data.jugadorVotadoId);
+            if (jugadorVotado) {
+                sala.votosPorJugador[jugadorVotado.id] = (sala.votosPorJugador[jugadorVotado.id] || 0) + 1;
+            }
+        }
 
-        // Contar votos
-        const jugadoresVivos = sala.jugadores.filter(j => !j.eliminado);
-        const votosRealizados = jugadoresVivos.filter(j => j.haVotado).length;
+        sala.votosEmitidos++;
 
-        // Enviar actualización a todos
-        io.to(data.sala).emit("actualizarVotacionMultijugador", {
-            votosRealizados: votosRealizados,
-            totalJugadores: jugadoresVivos.length
+        console.log(`${jugadorVotante.nombre} votó por ${data.jugadorVotadoNombre}. Votos emitidos: ${sala.votosEmitidos}/${sala.jugadores.length}`);
+
+        // Notificar a todos los jugadores sobre el voto
+        io.to(data.sala).emit("votoRegistrado", {
+            votosEmitidos: sala.votosEmitidos,
+            totalJugadores: sala.jugadores.length,
+            jugadorVotante: jugadorVotante.nombre
         });
 
-        // Si todos han votado, procesar resultados
-        if (votosRealizados >= jugadoresVivos.length) {
+        // Verificar si todos votaron
+        if (sala.votosEmitidos >= sala.jugadores.length) {
+            console.log(`Todos han votado en ${data.sala}`);
             procesarResultadosVotacion(data.sala);
         }
     });
@@ -434,141 +341,62 @@ io.on("connection", socket => {
         const sala = salas[salaCodigo];
         if (!sala) return;
 
-        // Contar votos
-        const conteoVotos = {};
-        Object.values(sala.votacion.votos).forEach(jugadorId => {
-            conteoVotos[jugadorId] = (conteoVotos[jugadorId] || 0) + 1;
-        });
-
-        // Encontrar jugador más votado
-        let jugadorMasVotadoId = null;
+        // Calcular resultados
         let maxVotos = 0;
-        for (const [jugadorId, votos] of Object.entries(conteoVotos)) {
+        let ganadorId = null;
+        let empate = false;
+
+        // Encontrar jugador con más votos
+        for (const [jugadorId, votos] of Object.entries(sala.votosPorJugador)) {
             if (votos > maxVotos) {
                 maxVotos = votos;
-                jugadorMasVotadoId = jugadorId;
+                ganadorId = jugadorId;
+                empate = false;
+            } else if (votos === maxVotos && votos > 0) {
+                empate = true;
             }
         }
 
-        if (!jugadorMasVotadoId) {
-            // Empate o error
-            console.log("Empate en votación o error");
-            return;
+        // Preparar detalle de votos
+        const detalleVotos = [];
+
+        // Agregar jugadores con votos
+        for (const jugador of sala.jugadores) {
+            const votos = sala.votosPorJugador[jugador.id] || 0;
+            if (votos > 0) {
+                detalleVotos.push({
+                    jugadorId: jugador.id,
+                    nombre: jugador.nombre,
+                    posicion: jugador.posicion,
+                    votos: votos
+                });
+            }
         }
 
-        const jugadorEliminado = sala.jugadores.find(j => j.id === jugadorMasVotadoId);
-        if (!jugadorEliminado) return;
+        // Ordenar por votos (descendente)
+        detalleVotos.sort((a, b) => b.votos - a.votos);
 
-        const esImpostor = sala.roles[jugadorEliminado.id] === "IMPOSTOR";
-        
-        // Marcar jugador como eliminado
-        jugadorEliminado.eliminado = true;
-        sala.votacion.jugadoresEliminados.push({
-            id: jugadorEliminado.id,
-            nombre: jugadorEliminado.nombre,
-            posicion: jugadorEliminado.posicion
+        // Determinar ganador
+        let ganadorVotacion;
+        if (maxVotos === 0) {
+            ganadorVotacion = "abstencion"; // Nadie votó o todos se abstuvieron
+        } else if (empate) {
+            ganadorVotacion = "empate"; // Empate en votos
+        } else {
+            ganadorVotacion = ganadorId;
+        }
+
+        console.log(`Resultados votación en ${salaCodigo}: Ganador=${ganadorVotacion}, MaxVotos=${maxVotos}`);
+
+        // Enviar resultados a todos los jugadores
+        io.to(salaCodigo).emit("todosVotaron", {
+            ganadorVotacion: ganadorVotacion,
+            maxVotos: maxVotos,
+            detalleVotos: detalleVotos,
+            totalVotos: sala.votosEmitidos,
+            totalJugadores: sala.jugadores.length
         });
-
-        // Calcular jugadores restantes
-        const jugadoresVivos = sala.jugadores.filter(j => !j.eliminado);
-        const impostoresVivos = jugadoresVivos.filter(j => sala.roles[j.id] === "IMPOSTOR");
-        const inocentesVivos = jugadoresVivos.length - impostoresVivos.length;
-
-        let juegoTerminado = false;
-        let puntosGanados = 0;
-
-        if (esImpostor) {
-            // Se encontró al impostor
-            juegoTerminado = true;
-            console.log(`Impostor ${jugadorEliminado.nombre} eliminado en ${salaCodigo}`);
-        } else {
-            // Se eliminó a un inocente
-            if (jugadoresVivos.length === 3 && impostoresVivos.length === 1 && inocentesVivos === 2) {
-                // Última ronda: +2 puntos
-                puntosGanados = 2;
-                juegoTerminado = true;
-                console.log(`Última ronda en ${salaCodigo}: impostor gana 2 puntos`);
-            } else {
-                // Ronda normal: +1 punto
-                puntosGanados = 1;
-                juegoTerminado = false;
-                console.log(`Ronda normal en ${salaCodigo}: impostor gana 1 punto`);
-            }
-            sala.votacion.puntuacionImpostor += puntosGanados;
-        }
-
-        // Preparar respuesta
-        const resultado = {
-            jugadorEliminado: {
-                nombre: jugadorEliminado.nombre,
-                posicion: jugadorEliminado.posicion
-            },
-            esImpostor: esImpostor,
-            palabra: sala.palabra,
-            puntuacionImpostor: sala.votacion.puntuacionImpostor,
-            jugadoresRestantes: jugadoresVivos.length,
-            juegoTerminado: juegoTerminado
-        };
-
-        if (!esImpostor && puntosGanados > 0) {
-            resultado.puntosGanados = puntosGanados;
-        }
-
-        // Resetear votos para siguiente ronda si el juego continúa
-        if (!juegoTerminado) {
-            sala.jugadores.forEach(j => {
-                j.haVotado = false;
-                j.voto = null;
-            });
-            sala.votacion.votos = {};
-        } else {
-            sala.votacion.activa = false;
-        }
-
-        // Enviar resultados a todos
-        io.to(salaCodigo).emit("resultadoVotacionMultijugador", resultado);
     }
-
-    socket.on("iniciarVotacion", salaCodigo => {
-        const sala = salas[salaCodigo];
-        if (!sala || socket.id !== sala.creador) return;
-
-        sala.votacion.activa = true;
-        sala.votacion.votos = {};
-
-        const jugadoresVivos = sala.jugadores.filter(j => !j.eliminado);
-        
-        io.to(salaCodigo).emit("iniciarVotacionMultijugador", {
-            jugadoresVivos: jugadoresVivos.map(j => ({
-                id: j.id,
-                nombre: j.nombre,
-                posicion: j.posicion
-            })),
-            jugadoresEliminados: sala.votacion.jugadoresEliminados,
-            puntuacionImpostor: sala.votacion.puntuacionImpostor,
-            votosRealizados: 0,
-            totalJugadores: jugadoresVivos.length
-        });
-    });
-
-    socket.on("continuarVotacion", salaCodigo => {
-        const sala = salas[salaCodigo];
-        if (!sala || !sala.votacion.activa) return;
-
-        const jugadoresVivos = sala.jugadores.filter(j => !j.eliminado);
-        
-        io.to(salaCodigo).emit("iniciarVotacionMultijugador", {
-            jugadoresVivos: jugadoresVivos.map(j => ({
-                id: j.id,
-                nombre: j.nombre,
-                posicion: j.posicion
-            })),
-            jugadoresEliminados: sala.votacion.jugadoresEliminados,
-            puntuacionImpostor: sala.votacion.puntuacionImpostor,
-            votosRealizados: 0,
-            totalJugadores: jugadoresVivos.length
-        });
-    });
 
     socket.on("revelarImpostor", salaCodigo => {
         const sala = salas[salaCodigo];
@@ -603,24 +431,14 @@ io.on("connection", socket => {
         sala.palabra = generarPalabra(sala.categoria, sala.dificultad);
         sala.listaParaVer = [...sala.jugadores.map(j => j.id)];
         sala.listos = [];
-        sala.votosImpostor = 0;
+        sala.votos = {};
+        sala.votosEmitidos = 0;
+        sala.votosPorJugador = {};
 
-        // Resetear estado de jugadores
+        // Reinicializar votos
         sala.jugadores.forEach(j => {
-            j.eliminado = false;
-            j.haVotado = false;
-            j.voto = null;
-            j._haVotado = false;
-            j._votoImpostor = false;
+            sala.votosPorJugador[j.id] = 0;
         });
-
-        // Resetear votación pero mantener puntuación
-        sala.votacion = {
-            activa: false,
-            votos: {},
-            jugadoresEliminados: [],
-            puntuacionImpostor: sala.votacion.puntuacionImpostor // Mantener puntuación
-        };
 
         asignarRolesAleatorios(sala);
 
@@ -631,7 +449,6 @@ io.on("connection", socket => {
             sala: salaCodigo,
             categoria: sala.categoria,
             dificultad: sala.dificultad || "No aplica",
-            tipoPartida: sala.tipoPartida,
             impostores: sala.impostores,
             totalJugadores: sala.jugadores.length,
             palabra: sala.palabra
@@ -646,22 +463,10 @@ io.on("connection", socket => {
         sala.palabra = null;
         sala.listaParaVer = [];
         sala.listos = [];
-        sala.votosImpostor = 0;
+        sala.votos = {};
+        sala.votosEmitidos = 0;
+        sala.votosPorJugador = {};
         sala.roles = {};
-        sala.votacion = {
-            activa: false,
-            votos: {},
-            jugadoresEliminados: [],
-            puntuacionImpostor: 0
-        };
-
-        sala.jugadores.forEach(j => {
-            j.eliminado = false;
-            j.haVotado = false;
-            j.voto = null;
-            j._haVotado = false;
-            j._votoImpostor = false;
-        });
 
         io.to(salaCodigo).emit("volverConfiguracionSala");
     });
@@ -683,7 +488,6 @@ io.on("connection", socket => {
             delete salas[salaCodigo];
             console.log(`Sala ${salaCodigo} eliminada por el creador`);
         } else if (sala.jugadores.length > 0) {
-            // Reasignar posiciones
             sala.jugadores.forEach((j, index) => {
                 j.posicion = index + 1;
             });
@@ -695,7 +499,6 @@ io.on("connection", socket => {
                 impostores: sala.impostores,
                 categoria: sala.categoria,
                 dificultad: sala.dificultad,
-                tipoPartida: sala.tipoPartida,
                 jugadores: sala.jugadores
             });
         } else {
@@ -730,7 +533,6 @@ io.on("connection", socket => {
                         impostores: sala.impostores,
                         categoria: sala.categoria,
                         dificultad: sala.dificultad,
-                        tipoPartida: sala.tipoPartida,
                         jugadores: sala.jugadores
                     });
                 } else {
