@@ -45,32 +45,27 @@ body {
   background: linear-gradient(90deg, transparent, #444, transparent);
 }
 
-/* Logo Styles - NUEVO */
+/* Contenedor del logo */
 .logo-container {
-  margin: 0 auto 25px auto;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin: 15px auto 25px;
   width: 120px;
   height: 120px;
-  background: white;
-  border-radius: 50%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: 15px;
-  border: 3px solid #333;
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
-  overflow: hidden;
-  transition: transform 0.3s ease, box-shadow 0.3s ease;
 }
 
-.logo-container:hover {
-  transform: translateY(-5px);
-  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.4);
-}
-
+/* Estilos para el logo SVG */
 .logo-svg {
-  width: 90%;
-  height: 90%;
-  filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.3));
+  width: 100%;
+  height: 100%;
+  filter: drop-shadow(0 0 8px rgba(255, 255, 255, 0.2));
+  transition: transform 0.3s ease;
+}
+
+.logo-svg:hover {
+  transform: scale(1.05);
+  filter: drop-shadow(0 0 12px rgba(255, 255, 255, 0.3));
 }
 
 .titulo-app {
@@ -81,7 +76,6 @@ body {
   font-weight: 300;
   letter-spacing: 1px;
   text-transform: uppercase;
-  position: relative;
 }
 
 button {
@@ -515,9 +509,9 @@ input[type="text"]::placeholder {
   }
 
   .logo-container {
-      width: 140px;
-      height: 140px;
-      margin-bottom: 30px;
+      width: 150px;
+      height: 150px;
+      margin: 20px auto 30px;
   }
 
   button {
@@ -581,8 +575,7 @@ input[type="text"]::placeholder {
   .logo-container {
       width: 80px;
       height: 80px;
-      margin-bottom: 20px;
-      padding: 10px;
+      margin: 10px auto 20px;
   }
 
   .titulo-app {
@@ -678,11 +671,6 @@ button:focus, .card.opcion:focus {
       background: #1a1a1a;
   }
 
-  .logo-container:hover {
-      transform: none;
-      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
-  }
-
   button:active {
       background: #2a2a2a;
       transform: scale(0.98);
@@ -691,10 +679,6 @@ button:focus, .card.opcion:focus {
   .card.opcion:active {
       background: #222;
       transform: scale(0.98);
-  }
-
-  .logo-container:active {
-      transform: scale(0.95);
   }
 }
 
