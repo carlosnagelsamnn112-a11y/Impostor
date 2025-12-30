@@ -22,6 +22,17 @@ let configLocal = {
 
 let configGuardada = null;
 
+// Función para mostrar la pantalla de carga
+function mostrarPantallaCarga() {
+    ocultarTodas();
+    document.getElementById("pantalla-carga").classList.remove("hidden");
+}
+
+// Función para ocultar la pantalla de carga
+function ocultarPantallaCarga() {
+    document.getElementById("pantalla-carga").classList.add("hidden");
+}
+
 function ocultarTodas() {
     document.querySelectorAll(".screen").forEach(s => s.classList.add("hidden"));
     document.getElementById("confirmModal").classList.add("hidden");
@@ -30,6 +41,27 @@ function ocultarTodas() {
 function mostrar(id) {
     ocultarTodas();
     document.getElementById(id).classList.remove("hidden");
+}
+
+// Simular carga inicial
+function iniciarCarga() {
+    mostrarPantallaCarga();
+    
+    // Simular tiempo de carga
+    setTimeout(() => {
+        ocultarPantallaCarga();
+        mostrar("pantalla-principal");
+    }, 2000);
+}
+
+// Función para mostrar pantalla con animación de carga
+function mostrarConCarga(id) {
+    mostrarPantallaCarga();
+    
+    setTimeout(() => {
+        ocultarPantallaCarga();
+        mostrar(id);
+    }, 1000);
 }
 
 function generarPalabraLocal(categoria, dificultad) {
@@ -93,10 +125,10 @@ function mostrarModo(modo) {
         document.getElementById("dificultadContainerLocal").style.display = "none";
         document.getElementById("dificultadLocal").value = "Fácil";
 
-        mostrar("pantalla-local-config");
+        mostrarConCarga("pantalla-local-config");
     } else {
         document.getElementById("codigoSalaUnirse").value = "";
-        mostrar("multijugador-nombre");
+        mostrarConCarga("multijugador-nombre");
     }
 }
 
@@ -212,16 +244,22 @@ function volverConfigLocal() {
 }
 
 function iniciarJuegoLocal() {
-    document.querySelectorAll('.nombre-jugador-local').forEach(input => {
-        const index = parseInt(input.getAttribute('data-index'));
-        const nombre = input.value.trim() || `Jugador ${index + 1}`;
-        configLocal.jugadores[index].nombre = nombre;
-    });
+    mostrarPantallaCarga();
+    
+    setTimeout(() => {
+        document.querySelectorAll('.nombre-jugador-local').forEach(input => {
+            const index = parseInt(input.getAttribute('data-index'));
+            const nombre = input.value.trim() || `Jugador ${index + 1}`;
+            configLocal.jugadores[index].nombre = nombre;
+        });
 
-    configLocal.palabraActual = generarPalabraLocal(configLocal.categoria, configLocal.dificultad);
-    asignarRolesLocales();
-    configLocal.jugadorActual = 0;
-    mostrarJugadorLocal();
+        configLocal.palabraActual = generarPalabraLocal(configLocal.categoria, configLocal.dificultad);
+        asignarRolesLocales();
+        configLocal.jugadorActual = 0;
+        
+        ocultarPantallaCarga();
+        mostrarJugadorLocal();
+    }, 1500);
 }
 
 function asignarRolesLocales() {
@@ -264,85 +302,105 @@ function mostrarJugadorLocal() {
 }
 
 function verPalabraLocal() {
-    const jugador = configLocal.jugadores[configLocal.jugadorActual];
-    const rol = configLocal.roles[configLocal.jugadorActual];
+    mostrarPantallaCarga();
+    
+    setTimeout(() => {
+        const jugador = configLocal.jugadores[configLocal.jugadorActual];
+        const rol = configLocal.roles[configLocal.jugadorActual];
 
-    document.getElementById("tituloJugadorPalabra").textContent = `Turno del Jugador ${configLocal.jugadorActual + 1}`;
-    document.getElementById("nombreJugadorPalabra").textContent = jugador.nombre;
-    document.getElementById("categoriaPalabra").textContent = configLocal.categoria;
-    document.getElementById("dificultadPalabra").textContent = configLocal.dificultad;
-    document.getElementById("impostoresPalabra").textContent = configLocal.impostores;
-    document.getElementById("totalJugadoresPalabra").textContent = configLocal.maxJugadores;
+        document.getElementById("tituloJugadorPalabra").textContent = `Turno del Jugador ${configLocal.jugadorActual + 1}`;
+        document.getElementById("nombreJugadorPalabra").textContent = jugador.nombre;
+        document.getElementById("categoriaPalabra").textContent = configLocal.categoria;
+        document.getElementById("dificultadPalabra").textContent = configLocal.dificultad;
+        document.getElementById("impostoresPalabra").textContent = configLocal.impostores;
+        document.getElementById("totalJugadoresPalabra").textContent = configLocal.maxJugadores;
 
-    const sinDificultad = ["Objetos", "Animales", "Personas", "ClashRoyale"];
-    const dificultadItem = document.getElementById("dificultadItemPalabra");
-    if (sinDificultad.includes(configLocal.categoria)) {
-        dificultadItem.style.display = "none";
-    } else {
-        dificultadItem.style.display = "flex";
-    }
+        const sinDificultad = ["Objetos", "Animales", "Personas", "ClashRoyale"];
+        const dificultadItem = document.getElementById("dificultadItemPalabra");
+        if (sinDificultad.includes(configLocal.categoria)) {
+            dificultadItem.style.display = "none";
+        } else {
+            dificultadItem.style.display = "flex";
+        }
 
-    const palabraElem = document.getElementById("palabraJugadorLocal");
+        const palabraElem = document.getElementById("palabraJugadorLocal");
 
-    if (rol === "IMPOSTOR") {
-        palabraElem.textContent = "IMPOSTOR";
-        palabraElem.className = "palabra-display palabra-impostor";
-    } else {
-        palabraElem.textContent = configLocal.palabraActual;
-        palabraElem.className = "palabra-display palabra-inocente";
-    }
+        if (rol === "IMPOSTOR") {
+            palabraElem.textContent = "IMPOSTOR";
+            palabraElem.className = "palabra-display palabra-impostor";
+        } else {
+            palabraElem.textContent = configLocal.palabraActual;
+            palabraElem.className = "palabra-display palabra-inocente";
+        }
 
-    const esUltimo = configLocal.jugadorActual === configLocal.jugadores.length - 1;
-    document.getElementById("btnSiguienteLocal").classList.toggle("hidden", esUltimo);
-    document.getElementById("btnFinalizarLocal").classList.toggle("hidden", !esUltimo);
+        const esUltimo = configLocal.jugadorActual === configLocal.jugadores.length - 1;
+        document.getElementById("btnSiguienteLocal").classList.toggle("hidden", esUltimo);
+        document.getElementById("btnFinalizarLocal").classList.toggle("hidden", !esUltimo);
 
-    mostrar("pantalla-local-palabra");
+        ocultarPantallaCarga();
+        mostrar("pantalla-local-palabra");
+    }, 1000);
 }
 
 function siguienteJugadorLocal() {
-    configLocal.jugadorActual++;
-    mostrarJugadorLocal();
+    mostrarPantallaCarga();
+    
+    setTimeout(() => {
+        configLocal.jugadorActual++;
+        ocultarPantallaCarga();
+        mostrarJugadorLocal();
+    }, 800);
 }
 
 function finalizarJuegoLocal() {
-    mostrar("pantalla-local-final");
+    mostrarConCarga("pantalla-local-final");
     document.getElementById("impostorRevelado").classList.add("hidden");
     document.getElementById("palabraReveladaLocal").classList.add("hidden");
 }
 
 function revelarImpostorLocal() {
-    const impostores = configLocal.impostoresIndices.map(index => configLocal.jugadores[index]);
+    mostrarPantallaCarga();
+    
+    setTimeout(() => {
+        const impostores = configLocal.impostoresIndices.map(index => configLocal.jugadores[index]);
 
-    let impostoresTexto = "";
+        let impostoresTexto = "";
 
-    if (impostores.length === 1) {
-        impostoresTexto = impostores[0].nombre;
-        document.getElementById("impostorTituloLocal").textContent = "EL IMPOSTOR ES:";
-    } else {
-        const nombresImpostores = impostores.map((imp, i) => `Impostor ${i + 1}: ${imp.nombre}`).join("<br>");
-        impostoresTexto = nombresImpostores;
-        document.getElementById("impostorTituloLocal").textContent = "LOS IMPOSTORES SON:";
-    }
+        if (impostores.length === 1) {
+            impostoresTexto = impostores[0].nombre;
+            document.getElementById("impostorTituloLocal").textContent = "EL IMPOSTOR ES:";
+        } else {
+            const nombresImpostores = impostores.map((imp, i) => `Impostor ${i + 1}: ${imp.nombre}`).join("<br>");
+            impostoresTexto = nombresImpostores;
+            document.getElementById("impostorTituloLocal").textContent = "LOS IMPOSTORES SON:";
+        }
 
-    document.getElementById("impostorReveladoTexto").innerHTML = impostoresTexto;
-    document.getElementById("impostorRevelado").classList.remove("hidden");
+        document.getElementById("impostorReveladoTexto").innerHTML = impostoresTexto;
+        document.getElementById("impostorRevelado").classList.remove("hidden");
 
-    document.getElementById("palabraReveladaTextoLocal").textContent = configLocal.palabraActual;
-    document.getElementById("palabraReveladaLocal").classList.remove("hidden");
+        document.getElementById("palabraReveladaTextoLocal").textContent = configLocal.palabraActual;
+        document.getElementById("palabraReveladaLocal").classList.remove("hidden");
 
-    document.querySelector("#pantalla-local-final .revelar-container button").style.display = "none";
+        document.querySelector("#pantalla-local-final .revelar-container button").style.display = "none";
+        ocultarPantallaCarga();
+    }, 1000);
 }
 
 function volveraJugarLocal() {
-    configLocal.palabraActual = generarPalabraLocal(configLocal.categoria, configLocal.dificultad);
-    asignarRolesLocales();
-    configLocal.jugadorActual = 0;
+    mostrarPantallaCarga();
+    
+    setTimeout(() => {
+        configLocal.palabraActual = generarPalabraLocal(configLocal.categoria, configLocal.dificultad);
+        asignarRolesLocales();
+        configLocal.jugadorActual = 0;
 
-    document.getElementById("impostorRevelado").classList.add("hidden");
-    document.getElementById("palabraReveladaLocal").classList.add("hidden");
-    document.querySelector("#pantalla-local-final .revelar-container button").style.display = "block";
+        document.getElementById("impostorRevelado").classList.add("hidden");
+        document.getElementById("palabraReveladaLocal").classList.add("hidden");
+        document.querySelector("#pantalla-local-final .revelar-container button").style.display = "block";
 
-    mostrarJugadorLocal();
+        ocultarPantallaCarga();
+        mostrarJugadorLocal();
+    }, 1500);
 }
 
 function volverConfiguracionLocal() {
@@ -379,31 +437,36 @@ function continuarMultijugador() {
     }
 
     nombreJugador = nombre;
-    mostrar("multijugador-elegir");
+    mostrarConCarga("multijugador-elegir");
 }
 
 function mostrarCrearSala() {
-    soyCreador = true;
-    const codigo = generarCodigoSala();
-    document.getElementById("codigoSalaCreador").textContent = codigo;
-    salaActual = codigo;
+    mostrarPantallaCarga();
+    
+    setTimeout(() => {
+        soyCreador = true;
+        const codigo = generarCodigoSala();
+        document.getElementById("codigoSalaCreador").textContent = codigo;
+        salaActual = codigo;
 
-    actualizarImpostoresMultijugador();
-    actualizarDificultadMultijugador();
+        actualizarImpostoresMultijugador();
+        actualizarDificultadMultijugador();
 
-    document.getElementById("listaJugadoresLobby").innerHTML = "";
-    document.getElementById("jugadoresActuales").textContent = "0";
+        document.getElementById("listaJugadoresLobby").innerHTML = "";
+        document.getElementById("jugadoresActuales").textContent = "0";
 
-    socket.emit("crearSala", {
-        nombre: nombreJugador,
-        codigo: codigo,
-        maxJugadores: parseInt(document.getElementById("cantidadJugadoresMultijugador").value),
-        impostores: parseInt(document.getElementById("cantidadImpostoresMultijugador").value),
-        categoria: document.getElementById("categoriaMultijugador").value,
-        dificultad: document.getElementById("dificultadMultijugador").value
-    });
+        socket.emit("crearSala", {
+            nombre: nombreJugador,
+            codigo: codigo,
+            maxJugadores: parseInt(document.getElementById("cantidadJugadoresMultijugador").value),
+            impostores: parseInt(document.getElementById("cantidadImpostoresMultijugador").value),
+            categoria: document.getElementById("categoriaMultijugador").value,
+            dificultad: document.getElementById("dificultadMultijugador").value
+        });
 
-    mostrar("multijugador-crear");
+        ocultarPantallaCarga();
+        mostrar("multijugador-crear");
+    }, 1000);
 }
 
 function mostrarUnirseSala() {
@@ -424,7 +487,7 @@ function volverMultijugadorPrincipal() {
         socket.emit("abandonarSala", salaActual);
         salaActual = null;
     }
-    mostrar("multijugador-nombre");
+    mostrarConCarga("multijugador-nombre");
 }
 
 function volverElegirMultijugador() {
@@ -432,7 +495,7 @@ function volverElegirMultijugador() {
         socket.emit("abandonarSala", salaActual);
         salaActual = null;
     }
-    mostrar("multijugador-elegir");
+    mostrarConCarga("multijugador-elegir");
 }
 
 function generarCodigoSala() {
@@ -491,6 +554,8 @@ function unirseSala() {
         return;
     }
 
+    mostrarPantallaCarga();
+    
     socket.emit("unirseSala", { 
         sala: codigo, 
         nombre: nombreJugador 
@@ -504,6 +569,8 @@ function iniciarJuegoMultijugador() {
         return;
     }
 
+    mostrarPantallaCarga();
+    
     const btn = document.getElementById("btnIniciarJuego");
     btn.disabled = true;
     btn.textContent = "Iniciando...";
@@ -511,6 +578,7 @@ function iniciarJuegoMultijugador() {
     setTimeout(() => {
         btn.disabled = false;
         btn.textContent = "🚀 Iniciar Juego";
+        ocultarPantallaCarga();
     }, 2000);
 
     socket.emit("iniciarJuego", salaActual);
@@ -519,7 +587,12 @@ function iniciarJuegoMultijugador() {
 function verPalabraMultijugador() {
     console.log("Solicitando palabra para sala:", salaActual);
     if (!salaActual) return;
-    socket.emit("verPalabra", salaActual);
+    
+    mostrarPantallaCarga();
+    setTimeout(() => {
+        ocultarPantallaCarga();
+        socket.emit("verPalabra", salaActual);
+    }, 1000);
 }
 
 function marcarListo() {
@@ -533,20 +606,35 @@ function marcarListo() {
 
 function votarImpostor() {
     if (!salaActual) return;
-    console.log("Votando impostor en sala:", salaActual);
-    socket.emit("votarImpostor", salaActual);
+    
+    mostrarPantallaCarga();
+    setTimeout(() => {
+        console.log("Votando impostor en sala:", salaActual);
+        socket.emit("votarImpostor", salaActual);
+        ocultarPantallaCarga();
+    }, 1000);
 }
 
 function volveraJugarMultijugador() {
     if (!salaActual) return;
-    console.log("Volviendo a jugar en sala:", salaActual);
-    socket.emit("volverAJugar", salaActual);
+    
+    mostrarPantallaCarga();
+    setTimeout(() => {
+        console.log("Volviendo a jugar en sala:", salaActual);
+        socket.emit("volverAJugar", salaActual);
+        ocultarPantallaCarga();
+    }, 1500);
 }
 
 function volverConfiguracionMultijugador() {
     if (!salaActual) return;
-    console.log("Volviendo a configuración en sala:", salaActual);
-    socket.emit("volverConfiguracion", salaActual);
+    
+    mostrarPantallaCarga();
+    setTimeout(() => {
+        console.log("Volviendo a configuración en sala:", salaActual);
+        socket.emit("volverConfiguracion", salaActual);
+        ocultarPantallaCarga();
+    }, 1000);
 }
 
 function confirmarSalirSala() {
@@ -557,11 +645,16 @@ function confirmSalir(ok) {
     document.getElementById("confirmModal").classList.add("hidden");
 
     if (ok) {
-        if (salaActual) {
-            socket.emit("abandonarSala", salaActual);
-            salaActual = null;
-        }
-        mostrar("pantalla-principal");
+        mostrarPantallaCarga();
+        
+        setTimeout(() => {
+            if (salaActual) {
+                socket.emit("abandonarSala", salaActual);
+                salaActual = null;
+            }
+            ocultarPantallaCarga();
+            mostrar("pantalla-principal");
+        }, 800);
     }
 }
 
@@ -587,17 +680,20 @@ socket.on("salaUnida", (data) => {
     console.log("Unido a sala:", data.sala);
     salaActual = data.sala;
     soyCreador = false;
+    ocultarPantallaCarga();
     actualizarLobbyUnido(data);
 });
 
 socket.on("errorUnirse", (msg) => {
     alert("Error: " + msg);
+    ocultarPantallaCarga();
 });
 
 socket.on("error", (msg) => {
     alert("Error: " + msg);
     document.getElementById("btnIniciarJuego").disabled = false;
     document.getElementById("btnIniciarJuego").textContent = "🚀 Iniciar Juego";
+    ocultarPantallaCarga();
 });
 
 socket.on("jugadoresActualizados", (data) => {
@@ -838,7 +934,11 @@ function actualizarLobbyUnido(data) {
     mostrar("multijugador-sala-unido");
 }
 
+// Inicializar cuando el DOM esté listo
 document.addEventListener("DOMContentLoaded", () => {
+    // Mostrar pantalla de carga al inicio
+    iniciarCarga();
+    
     document.getElementById("cantidadJugadoresLocal")?.addEventListener("change", function() {
         actualizarImpostoresLocal();
     });
