@@ -53,6 +53,48 @@ body {
   font-weight: 300;
   letter-spacing: 1px;
   text-transform: uppercase;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 15px;
+  flex-wrap: wrap;
+}
+
+/* Estilos para el LOGO */
+.logo-header {
+  width: 60px;
+  height: 60px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.logo-header img {
+  width: 100%;
+  height: auto;
+  filter: invert(1); /* Hace que el logo negro se vea blanco en fondos oscuros */
+  opacity: 0.9;
+  transition: opacity 0.2s;
+}
+
+.logo-medium {
+  width: 40px;
+  height: 40px;
+  display: inline-block;
+  vertical-align: middle;
+  margin: 0 auto;
+}
+
+.logo-medium img {
+  width: 100%;
+  height: auto;
+  filter: invert(1);
+  opacity: 0.7;
+}
+
+/* Favicon styling */
+link[rel="icon"] {
+  border-radius: 6px;
 }
 
 button {
@@ -513,6 +555,16 @@ input[type="text"]::placeholder {
       margin-bottom: 30px;
   }
 
+  .logo-header {
+      width: 70px;
+      height: 70px;
+  }
+
+  .logo-medium {
+      width: 50px;
+      height: 50px;
+  }
+
   .palabra-display {
       font-size: 42px;
       padding: 25px;
@@ -546,6 +598,16 @@ input[type="text"]::placeholder {
   .titulo-app {
       font-size: 24px;
       margin-bottom: 20px;
+  }
+
+  .logo-header {
+      width: 50px;
+      height: 50px;
+  }
+
+  .logo-medium {
+      width: 35px;
+      height: 35px;
   }
 
   .palabra-display {
