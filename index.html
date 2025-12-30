@@ -6,13 +6,25 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
     <title>IMPOSTOR | Juego de Deducción</title>
     <link rel="stylesheet" href="styles.css" />
+    <!-- Logo como favicon -->
+    <link rel="icon" type="image/svg+xml" href="logo_impostor.svg">
 </head>
 
 <body>
 
     <!-- PANTALLA PRINCIPAL -->
     <div class="screen" id="pantalla-principal">
-        <h1 class="titulo-app">IMPOSTOR</h1>
+        <div class="header-container">
+            <div style="width: 80px;"></div>
+            <h1 class="titulo-app">
+                <!-- Logo en el header principal -->
+                <div class="logo-header">
+                    <img src="logo_impostor.svg" alt="Logo IMPOSTOR">
+                </div>
+                IMPOSTOR
+            </h1>
+            <div style="width: 80px;"></div>
+        </div>
         <div class="main-menu">
             <div class="card opcion" onclick="mostrarModo('local')">
                 <h3>JUEGO LOCAL</h3>
@@ -319,7 +331,14 @@
         <div style="background: #1a1a1a; padding: 15px; border-radius: 8px; margin: 15px 0; border: 1px solid #333;">
             <h3 style="margin-top: 0; color: white; margin-bottom: 10px;">JUGADORES (<span
                     id="jugadoresActuales">0</span>/<span id="maxJugadoresDisplay">4</span>)</h3>
-            <div id="listaJugadoresLobby"></div>
+            <div id="listaJugadoresLobby">
+                <!-- Logo en el lobby del creador -->
+                <div style="text-align: center; padding: 15px; opacity: 0.7;">
+                    <div class="logo-medium">
+                        <img src="logo_impostor.svg" alt="Logo IMPOSTOR">
+                    </div>
+                </div>
+            </div>
         </div>
 
         <div class="row">
@@ -366,7 +385,14 @@
         <div style="background: #1a1a1a; padding: 15px; border-radius: 8px; border: 1px solid #333;">
             <h3 style="margin-top: 0; color: white; margin-bottom: 10px;">JUGADORES (<span
                     id="jugadoresActualesUnido">0</span>/<span id="maxJugadoresDisplayUnido">4</span>)</h3>
-            <div id="listaJugadoresUnido"></div>
+            <div id="listaJugadoresUnido">
+                <!-- Logo en el lobby del jugador -->
+                <div style="text-align: center; padding: 15px; opacity: 0.7;">
+                    <div class="logo-medium">
+                        <img src="logo_impostor.svg" alt="Logo IMPOSTOR">
+                    </div>
+                </div>
+            </div>
         </div>
 
         <div style="margin: 40px 0; text-align: center;">
