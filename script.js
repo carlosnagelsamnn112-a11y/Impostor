@@ -44,7 +44,6 @@ function generarPalabraLocal(categoria, dificultad) {
     const palabras = {
         Objetos: ["Agenda", "Alfombra", "Almohada", "Altavoz", "Antena", "Archivador", "Arena", "Armario", "Asiento", "Audífonos", "Balón", "Bandeja", "Basurero", "Batería", "Batidora", "Bicicleta", "Billete", "Boleto", "Bolígrafo", "Bolillo", "Bolsa", "Bomba", "Bombillo", "Borrador", "Botella", "Brocha", "Brújula", "Bufanda", "Cable", "Caja", "Cajón", "Calcetin", "Calculadora", "Cámara", "Camisa", "Candado", "Carpeta", "Carro", "Cartera", "Casco", "Cemento", "Cepillo", "Cerradura", "Cerrillo", "Chapa", "Chaqueta", "Cilindro", "Cinta", "Cinturón", "Clip", "Cobija", "Codo", "Colador", "Colchón", "Computador", "Congelador", "Consola", "Cordón", "Cortina", "Cuaderno", "Cuadro", "Cubeta", "Cubo", "Cuchara", "Cuchillo", "Cuerda", "Dado", "Destornillador", "Detergente", "Disco", "Ducha", "Enchufe", "Envase", "Escalera", "Escoba", "Escritorio", "Esfera", "Espejo", "Esponja", "Estante", "Estufa", "Etiqueta", "Flauta", "Flecha", "Funda", "Gafas", "Gorra", "Grapadora", "Grifo", "Guantes", "Hebilla", "Heladera", "Hoja", "Horno", "Imán", "Impresora", "Interruptor", "Jabón", "Juguete", "Ladrillo", "Lámpara", "Lana", "Lápiz", "Lata", "Libreta", "Licuadora", "Linterna", "Llanta", "Llave", "Llavero", "Madera", "Maleta", "Mapa", "Marcador", "Marco", "Martillo", "Memoria", "Metal", "Microondas", "Mochila", "Moneda", "Monitor", "Motor", "Mouse", "Olla", "Paño", "Papel", "Paraguas", "Parlante", "Pasta", "Pedal", "Pegante", "Peinilla", "Pelador", "Pelota", "Peluche", "Perfume", "Persiana", "Pila", "Pincel", "Plástico", "Plato", "Poster", "Puerta", "Pulsera", "Punzón", "Radio", "Recipiente", "Recogedor", "Refrigerador", "Regla", "Reloj", "Retrovisor", "Roca", "Rodillo", "Rollo", "Sábana", "Sartén", "Serrucho", "Servilleta", "Shampoo", "Sierra", "Silla", "Sobre", "Sofá", "Soga", "Sombrero", "Sudader", "Tablero", "Taladro", "Tapa", "Tapete", "Tarjeta", "Taza", "Teclado", "Teléfono", "Televisor", "Tenedor", "Tenis", "Termo", "Termómetro", "Tetera", "Tijeras", "Toalla", "Tornillo", "Torre", "Trapeador", "Trípode", "Trompeta", "Tubería", "Tubo", "Tuerca", "Vajilla", "Vaso", "Ventana", "Ventilador", "Vidrio", "Vinilo", "Volante", "Zapatos"],
         Animales: ["Abeja", "Águila", "Alce", "Anaconda", "Anguila", "Araña", "Ardilla", "Armadillo", "Atún", "Avestruz", "Avispa", "Babosa", "Bagre", "Ballena", "Boa", "Búfalo", "Búho", "Caballito de mar", "Caballo", "Cabra", "Cachalote", "Caimán", "Calamar", "Camaleón", "Camarón", "Camello", "Canario", "Cangrejo", "Canguro", "Caracol", "Castor", "Cebra", "Cerdo", "Chimpancé", "Cigüeña", "Cisne", "Cobra", "Cocodrilo", "Codorniz", "Comadreja", "Cóndor", "Conejo", "Cuervo", "Delfín", "Elefante", "Erizo", "Escarabajo", "Escorpión", "Estrella de mar", "Flamenco", "Foca", "Gallina", "Gallo", "Ganso", "Garrapata", "Garza", "Gato", "Gaviota", "Gorila", "Gorrión", "Grillo", "Guacamayo", "Guepardo", "Gusano", "Halcón", "Hámster", "Hiena", "Hipopótamo", "Hormiga", "Iguana", "Jabalí", "Jaguar", "Jirafa", "Koala", "Lagarto", "Langosta", "Lechuza", "Lémur", "León", "Leopardo", "Libélula", "Lince", "Llama", "Lobo", "Lombriz", "Loro", "Manatí", "Mandril", "Mantarraya", "Mantis", "Mapache", "Mariposa", "Mariquita", "Medusa", "Mofeta", "Mono", "Morsa", "Mosca", "Mosquito", "Murciélago", "Nutria", "Orangután", "Orca", "Oruga", "Oso", "Oso hormiguero", "Oso negro", "Oso pardo", "Oso polar", "Oveja", "Paloma", "Panda", "Pato", "Pavo", "Pavo real", "Pelícano", "Perezoso", "Perico", "Perro", "Pez", "Pingüino", "Pitón", "Polilla", "Puercoespín", "Pulpo", "Puma", "Rana", "Rata", "Ratón", "Raya", "Reno", "Rinoceronte", "Salamandra", "Salmón", "Saltamontes", "Sapo", "Sardina", "Serpiente", "Suricata", "Tarántula", "Tiburón", "Tigre", "Topo", "Tortuga", "Tucán", "Vaca", "Venado", "Víbora", "Zorrillo", "Zorro"],
-        Personas: ["Catalina Puerto", "Ana Maria", "Katerin Cardona", "Maleja", "Katerin Becerra", "Natalia Ortega (la india)", "Danna Amaya", "Karol Rueda", "Jennifer Merchan", "Jeanpi", "Steven", "Badillo", "Checho", "Marbello", "Pez", "Yamid", "Juan Esteban", "Daniel", "Joseph", "Rosado", "Julian", "Vanesa Castellanos", "Lisarazo", "Camila Jaimes", "Juan David", "Alexa", "Mafe", "Lili", "Burgos", "Bolas", "Marcos", "Ana Mercedes", "Parra", "Nuñez (el negro)", "Topo", "Erick Morantes", "Velandia", "Viviana Eugenio", "Luz Marina", "Gustavo", "Rafael", "Cala", "Snedy", "Reyes", "Yalile", "Fernanda Jerez", "Camila Arenas", "Fifi", "Nene", "Nicolas Tellez", "Yordan"],
         Países: {
             "Fácil": ["Alemania", "Argentina", "Australia", "Bolivia", "Brasil", "Canadá", "Catar", "Chile", "China", "Colombia", "Cuba", "Egipto", "España", "Estados Unidos", "Francia", "Grecia", "Haití", "India", "Ingleterra", "Israel", "Italia", "Jamaica", "Japón", "Madagascar", "Marruecos", "México", "Mónaco", "Nueva Zelanda", "Países Bajos", "Palestina", "Panamá", "Perú", "Portugal", "República Dominicana", "Rusia", "Suiza", "Turquía", "Ucrania", "Uruguay", "Venezuela"],
             "Medio": ["Arabia Saudita", "Austria", "Bélgica", "Camerún", "Congo", "Corea del Norte", "Corea del Sur", "Costa de Marfil", "Costa Rica", "Croacia", "Dinamarca", "Ecuador", "El Salvador", "Emiratos Árabes Unidos", "Filipinas", "Guatemala", "Honduras", "Irak", "Irán", "Nicaragua", "Nigeria", "Noruega", "Paraguay", "Polonia", "Rumania", "Senegal", "Sudáfrica", "Suecia", "Túnez", "Vietnam"],
@@ -63,7 +62,7 @@ function generarPalabraLocal(categoria, dificultad) {
         ClashRoyale: ["Cocinero Real", "Duquesa de dagas", "Cañonero", "Princesa de torre", "Caballero", "Mosquetera", "Mini P.E.K.K.A.", "Gigante", "Esqueletos", "Espíritu de fuego", "Espíritu eléctrico", "Espíritu de hielo", "Espíritu sanador", "Espejo", "Duendes", "Duendes con lanza", "Bombardero", "Murciélagos", "Descarga", "Bola de nieve", "Gólem de hielo", "Berserker", "Barril de barbaros", "Tronco", "Rompemuros", "Arbusto sospechoso", "Furia", "Maldición duende", "Arqueras", "Esbirros", "Flechas", "Lápida", "Cañón", "Megaesbirro", "Ejercito de esqueletos", "Guardias", "Barril de duendes", "Enredadera", "Pandilla de duendes", "Barril de Esqueletos", "Duende lanza dardos", "Princesa", "Minero", "Lanza fuegos", "Terremoto", "Mago de hielo", "Fantasma", "Bandida", "Paquete real", "Gólem de elixir", "Tornado", "Espejo", "Vacío", "Pescador", "Principito", "Choza de duendes", "Jaula del forzudo", "Bola de fuego", "Valquiria", "Ariete de batalla", "Dragones esqueletos", "Torre bombardera", "Morero", "Montapuercos", "Maquina Voladora", "Bebe dragón", "Príncipe oscuro", "Curandera", "Hielo", "Gigante Rúnica", "Veneno", "Torre tesla", "Electrocutadores", "Horno", "Cazador", "Dragon infernal", "Mago Eléctrico", "Demoledor Duende", "Fénix", "Arquero mágico", "Taladradora de duendes", "Leñador", "Bruja nocturna", "Bruja madre", "Rey esqueleto", "Caballero dorado", "Gran minero", "Barbaros", "Mago de fuego", "Torre infernal", "Bruja", "Puercos reales", "Globo Bombástico", "Príncipe", "Horda de esbirros", "Montacarnera", "Dragon eléctrico", "Cementerio", "Pillos", "Lanzarocas", "Verdugo", "Cañón con ruedas", "Maquina de duende", "Reina arquera", "Monje", "Duendenstein", "Cohete", "Gigante noble", "Esqueleto gigante", "Rayo", "Choza de barbaros", "Duende Gigante", "Barbaros de elite", "Ballesta", "Chispitas", "Recolector de elixir", "Emperatriz espiritual", "Bandida líder", "P.E.K.K.A.", "Reclutas reales", "Megacaballero", "Gigante Eléctrico", "Sabueso", "Gólem", "Trio de mosqueteras"]
     };
 
-    if (categoria === "Objetos" || categoria === "Animales" || categoria === "Personas" || categoria === "ClashRoyale") {
+    if (categoria === "Objetos" || categoria === "Animales" || categoria === "ClashRoyale") {
         const lista = palabras[categoria] || palabras["Objetos"];
         return lista[Math.floor(Math.random() * lista.length)];
     } else {
@@ -113,7 +112,7 @@ function actualizarDificultadLocal() {
     const dificultadContainer = document.getElementById("dificultadContainerLocal");
     const selectDificultad = document.getElementById("dificultadLocal");
 
-    const sinDificultad = ["Objetos", "Animales", "Personas", "ClashRoyale"];
+    const sinDificultad = ["Objetos", "Animales", "ClashRoyale"];
 
     if (sinDificultad.includes(categoria)) {
         dificultadContainer.style.display = "none";
@@ -260,7 +259,7 @@ function mostrarJugadorLocal() {
     document.getElementById("impostoresNombreLocal").textContent = configLocal.impostores;
     document.getElementById("totalJugadoresLocal").textContent = configLocal.maxJugadores;
 
-    const sinDificultad = ["Objetos", "Animales", "Personas", "ClashRoyale"];
+    const sinDificultad = ["Objetos", "Animales", "ClashRoyale"];
     const dificultadItem = document.getElementById("dificultadItemLocal");
     if (sinDificultad.includes(configLocal.categoria)) {
         dificultadItem.style.display = "none";
@@ -282,7 +281,7 @@ function verPalabraLocal() {
     document.getElementById("impostoresPalabra").textContent = configLocal.impostores;
     document.getElementById("totalJugadoresPalabra").textContent = configLocal.maxJugadores;
 
-    const sinDificultad = ["Objetos", "Animales", "Personas", "ClashRoyale"];
+    const sinDificultad = ["Objetos", "Animales", "ClashRoyale"];
     const dificultadItem = document.getElementById("dificultadItemPalabra");
     if (sinDificultad.includes(configLocal.categoria)) {
         dificultadItem.style.display = "none";
@@ -457,7 +456,7 @@ function actualizarDificultadMultijugador() {
     const dificultadContainer = document.getElementById("dificultadContainerMultijugador");
     const selectDificultad = document.getElementById("dificultadMultijugador");
 
-    const sinDificultad = ["Objetos", "Animales", "Personas", "ClashRoyale"];
+    const sinDificultad = ["Objetos", "Animales", "ClashRoyale"];
 
     if (sinDificultad.includes(categoria)) {
         dificultadContainer.style.display = "none";
@@ -641,7 +640,7 @@ socket.on("irPantallaVerPalabra", (data) => {
     document.getElementById("nombreJugadorMultijugadorVer").textContent = nombreJugador;
     document.getElementById("categoriaJugadorMultijugadorVer").textContent = categoriaActual;
 
-    const sinDificultad = ["Objetos", "Animales", "Personas", "ClashRoyale"];
+    const sinDificultad = ["Objetos", "Animales", "ClashRoyale"];
     if (sinDificultad.includes(categoriaActual) || !dificultadActual) {
         document.getElementById("dificultadJugadorMultijugadorVer").textContent = "No aplica";
     } else {
@@ -665,7 +664,7 @@ socket.on("resultadoPalabra", (data) => {
     document.getElementById("nombreJugadorMultijugadorRevelado").textContent = nombreJugador;
     document.getElementById("categoriaJugadorMultijugadorRevelado").textContent = categoriaActual;
 
-    const sinDificultad = ["Objetos", "Animales", "Personas", "ClashRoyale"];
+    const sinDificultad = ["Objetos", "Animales", "ClashRoyale"];
     if (sinDificultad.includes(categoriaActual) || !dificultadActual) {
         document.getElementById("dificultadJugadorMultijugadorRevelado").textContent = "No aplica";
     } else {
@@ -812,7 +811,7 @@ function actualizarLobbyUnido(data) {
         <div style="margin-bottom: 8px;">Categoría: ${data.categoria}</div>
     `;
 
-    const sinDificultad = ["Objetos", "Animales", "Personas", "ClashRoyale"];
+    const sinDificultad = ["Objetos", "Animales", "ClashRoyale"];
     if (data.dificultad && !sinDificultad.includes(data.categoria)) {
         configHTML += `<div>Dificultad: ${data.dificultad}</div>`;
     }
