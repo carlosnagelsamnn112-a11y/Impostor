@@ -30,6 +30,14 @@ function ocultarTodas() {
 function mostrar(id) {
     ocultarTodas();
     document.getElementById(id).classList.remove("hidden");
+    
+    // MOSTRAR/OCULTAR LOGO SEGÚN PANTALLA
+    const logoFondo = document.getElementById("logo-fondo");
+    if (id === "pantalla-principal") {
+        logoFondo.style.display = "none";  // OCULTAR en pantalla principal
+    } else {
+        logoFondo.style.display = "flex";  // MOSTRAR en otras pantallas
+    }
 }
 
 function generarPalabraLocal(categoria, dificultad) {
