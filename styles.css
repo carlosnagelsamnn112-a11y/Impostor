@@ -682,8 +682,9 @@ button:focus, .card.opcion:focus {
     align-items: center;
     justify-content: center;
     pointer-events: none;
-    z-index: -1;
-    opacity: 0.3;
+    z-index: 1;
+    opacity: 0.05;
+    display: none;
 }
 
 #logo-fondo img {
