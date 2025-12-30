@@ -3,7 +3,12 @@
 * {
   box-sizing: border-box;
   font-family: 'Orbitron', sans-serif;
-  letter-spacing: 0.3px;
+  letter-spacing: 0.2px;
+}
+
+/* Escala base para móviles */
+html {
+  font-size: 14px;
 }
 
 body {
@@ -14,9 +19,9 @@ body {
   display: flex;
   justify-content: center;
   align-items: flex-start;
-  padding: 15px;
-  font-size: 14px;
+  padding: 10px;
   -webkit-tap-highlight-color: transparent;
+  -webkit-text-size-adjust: 100%;
 }
 
 .hidden {
@@ -27,11 +32,11 @@ body {
   width: 100%;
   max-width: 500px;
   background: #111111;
-  border-radius: 12px;
-  padding: 20px;
+  border-radius: 10px;
+  padding: 16px;
   text-align: center;
-  margin: 10px 0;
-  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.8);
+  margin: 8px 0;
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.8);
   border: 1px solid #333333;
   position: relative;
   overflow: hidden;
@@ -49,26 +54,27 @@ body {
 }
 
 .titulo-app {
-  font-size: 28px;
+  font-size: 22px;
   margin-top: 0;
-  margin-bottom: 25px;
+  margin-bottom: 20px;
   color: white;
   font-weight: 700;
-  letter-spacing: 1px;
+  letter-spacing: 0.8px;
   text-transform: uppercase;
-  text-shadow: 0 0 10px rgba(0, 204, 255, 0.3);
+  text-shadow: 0 0 8px rgba(0, 204, 255, 0.3);
+  line-height: 1.2;
 }
 
 button {
   background: #222222;
   color: white;
   border: none;
-  border-radius: 8px;
-  padding: 15px 20px;
-  margin: 8px 0;
+  border-radius: 6px;
+  padding: 12px 16px;
+  margin: 6px 0;
   cursor: pointer;
   font-weight: 500;
-  font-size: 15px;
+  font-size: 13px;
   transition: all 0.2s;
   width: 100%;
   border: 1px solid #333;
@@ -76,13 +82,14 @@ button {
   overflow: hidden;
   touch-action: manipulation;
   text-transform: uppercase;
-  letter-spacing: 1px;
+  letter-spacing: 0.5px;
+  min-height: 44px; /* Tamaño táctil mínimo */
 }
 
 button:hover {
   background: #2a2a2a;
-  transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
+  transform: translateY(-1px);
+  box-shadow: 0 3px 8px rgba(0, 0, 0, 0.4);
 }
 
 button:active {
@@ -102,11 +109,12 @@ button:disabled {
   background: #1a1a1a;
   color: #ccc;
   border: 1px solid #333;
-  padding: 10px 15px;
-  border-radius: 6px;
+  padding: 8px 12px;
+  border-radius: 5px;
   cursor: pointer;
-  font-size: 14px;
-  min-width: 70px;
+  font-size: 12px;
+  min-width: 60px;
+  min-height: 36px;
   font-weight: 400;
   width: auto;
   margin: 0;
@@ -120,9 +128,9 @@ button:disabled {
 
 .card.opcion {
   background: #1a1a1a;
-  padding: 18px;
-  border-radius: 10px;
-  margin: 12px 0;
+  padding: 14px;
+  border-radius: 8px;
+  margin: 10px 0;
   cursor: pointer;
   transition: all 0.2s;
   border: 1px solid #333;
@@ -132,48 +140,51 @@ button:disabled {
 .card.opcion:hover {
   background: #222;
   border-color: #444;
-  transform: translateY(-3px);
+  transform: translateY(-2px);
 }
 
 .card.opcion h3 {
   margin-top: 0;
   color: white;
   font-weight: 600;
-  font-size: 18px;
-  margin-bottom: 5px;
+  font-size: 15px;
+  margin-bottom: 4px;
+  line-height: 1.2;
 }
 
 .card.opcion p {
   color: #aaa;
   margin-bottom: 0;
-  font-size: 14px;
+  font-size: 12px;
+  line-height: 1.3;
 }
 
 .configuracion {
-  margin: 20px 0;
+  margin: 16px 0;
   text-align: left;
 }
 
 .configuracion label {
   display: block;
-  margin-bottom: 8px;
+  margin-bottom: 6px;
   font-weight: 500;
   color: #ccc;
-  font-size: 15px;
+  font-size: 13px;
 }
 
 .select-config {
   width: 100%;
-  padding: 14px;
-  border-radius: 8px;
+  padding: 12px;
+  border-radius: 6px;
   border: 1px solid #333;
   background: #1a1a1a;
   color: white;
-  font-size: 15px;
+  font-size: 13px;
   transition: all 0.2s;
   -webkit-appearance: none;
   -moz-appearance: none;
   appearance: none;
+  min-height: 44px;
 }
 
 .select-config:focus {
@@ -183,17 +194,18 @@ button:disabled {
 }
 
 .nota {
-  font-size: 12px;
+  font-size: 11px;
   color: #777;
-  margin-top: 5px;
-  margin-left: 5px;
+  margin-top: 4px;
+  margin-left: 4px;
   font-style: italic;
+  line-height: 1.3;
 }
 
 .row {
-  margin-top: 25px;
+  margin-top: 20px;
   display: flex;
-  gap: 12px;
+  gap: 10px;
   justify-content: center;
   flex-wrap: wrap;
 }
@@ -201,35 +213,36 @@ button:disabled {
 .row-buttons {
   display: flex;
   flex-direction: column;
-  gap: 12px;
-  margin-top: 25px;
+  gap: 10px;
+  margin-top: 20px;
 }
 
 .jugador-input {
-  margin: 15px 0;
-  padding: 15px;
+  margin: 12px 0;
+  padding: 12px;
   background: #1a1a1a;
-  border-radius: 8px;
+  border-radius: 6px;
   border: 1px solid #333;
 }
 
 .jugador-numero {
   color: #ccc;
-  margin-bottom: 8px;
+  margin-bottom: 6px;
   font-weight: 500;
   text-align: left;
-  font-size: 15px;
+  font-size: 13px;
 }
 
 .jugador-input input {
   width: 100%;
-  padding: 14px;
-  border-radius: 8px;
+  padding: 12px;
+  border-radius: 6px;
   border: 1px solid #333;
   background: #222;
   color: white;
-  font-size: 15px;
+  font-size: 13px;
   transition: all 0.2s;
+  min-height: 44px;
 }
 
 .jugador-input input:focus {
@@ -239,14 +252,15 @@ button:disabled {
 }
 
 .jugador-lista {
-  padding: 12px;
+  padding: 10px;
   border-bottom: 1px solid #222;
   text-align: left;
   display: flex;
   align-items: center;
-  font-size: 15px;
+  font-size: 13px;
   color: #ddd;
-  line-height: 1.4;
+  line-height: 1.3;
+  flex-wrap: wrap;
 }
 
 .jugador-lista:last-child {
@@ -255,29 +269,32 @@ button:disabled {
 
 .creador-indicator {
   color: #00ccff;
-  font-size: 12px;
-  margin-left: 8px;
+  font-size: 11px;
+  margin-left: 6px;
   background: rgba(0, 204, 255, 0.1);
-  padding: 2px 6px;
-  border-radius: 4px;
+  padding: 2px 5px;
+  border-radius: 3px;
   font-weight: 500;
+  white-space: nowrap;
 }
 
 .palabra-display {
-  font-size: 36px;
+  font-size: clamp(20px, 6vw, 32px);
   font-weight: 500;
-  margin: 25px 0;
-  padding: 20px;
-  border-radius: 10px;
+  margin: 18px 0;
+  padding: 16px;
+  border-radius: 8px;
   background: #1a1a1a;
   border: 2px solid #333;
-  min-height: 110px;
+  min-height: 90px;
   display: flex;
   align-items: center;
   justify-content: center;
-  letter-spacing: 2px;
+  letter-spacing: 1px;
   word-break: break-word;
-  line-height: 1.2;
+  overflow-wrap: break-word;
+  line-height: 1.1;
+  hyphens: auto;
 }
 
 .palabra-inocente {
@@ -294,37 +311,40 @@ button:disabled {
 }
 
 .nombre-jugador-display {
-  font-size: 28px;
+  font-size: clamp(18px, 5vw, 24px);
   color: white;
-  margin: 18px 0;
+  margin: 14px 0;
   text-align: center;
   font-weight: 500;
   word-break: break-word;
-  text-shadow: 0 0 8px rgba(0, 204, 255, 0.2);
+  overflow-wrap: break-word;
+  text-shadow: 0 0 6px rgba(0, 204, 255, 0.2);
+  line-height: 1.2;
 }
 
 .info-jugador {
-  margin: 20px 0;
-  padding: 18px;
+  margin: 16px 0;
+  padding: 14px;
   background: #1a1a1a;
-  border-radius: 10px;
+  border-radius: 8px;
   border: 1px solid #333;
 }
 
 .info-detalle {
   display: flex;
   flex-direction: column;
-  gap: 10px;
-  margin-top: 18px;
+  gap: 8px;
+  margin-top: 14px;
 }
 
 .info-item {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 10px 0;
+  padding: 8px 0;
   border-bottom: 1px solid #222;
   flex-wrap: wrap;
+  gap: 4px;
 }
 
 .info-item:last-child {
@@ -333,49 +353,52 @@ button:disabled {
 
 .info-label {
   color: #aaa;
-  font-size: 15px;
-  margin-right: 10px;
+  font-size: 13px;
+  margin-right: 8px;
 }
 
 .info-valor {
   color: white;
   font-weight: 500;
-  font-size: 16px;
+  font-size: 14px;
+  text-align: right;
 }
 
 .impostor-info {
-  font-size: 22px;
+  font-size: clamp(18px, 4vw, 22px);
   color: #ff3333;
   font-weight: 500;
-  margin: 20px 0;
-  padding: 18px;
+  margin: 16px 0;
+  padding: 14px;
   background: rgba(255, 51, 51, 0.05);
-  border-radius: 10px;
+  border-radius: 8px;
   border: 2px solid #ff3333;
   text-align: center;
 }
 
 .impostor-titulo {
-  font-size: 16px;
+  font-size: 14px;
   color: #ff6666;
-  margin-bottom: 10px;
+  margin-bottom: 8px;
   text-transform: uppercase;
-  letter-spacing: 1px;
+  letter-spacing: 0.8px;
   font-weight: 400;
 }
 
 .impostor-nombre {
-  font-size: 28px;
+  font-size: clamp(20px, 5vw, 24px);
   color: #ff3333;
   font-weight: 500;
   word-break: break-word;
+  overflow-wrap: break-word;
+  line-height: 1.2;
 }
 
 .revelar-container {
-  margin: 25px 0;
-  padding: 18px;
+  margin: 20px 0;
+  padding: 14px;
   background: #1a1a1a;
-  border-radius: 10px;
+  border-radius: 8px;
   border: 1px solid #333;
 }
 
@@ -388,42 +411,44 @@ button:disabled {
   align-items: center;
   z-index: 1000;
   backdrop-filter: blur(3px);
-  padding: 15px;
+  padding: 10px;
 }
 
 .modal-box {
   background: #111;
-  padding: 25px;
-  border-radius: 12px;
+  padding: 20px;
+  border-radius: 10px;
   text-align: center;
-  max-width: 400px;
+  max-width: 350px;
   width: 100%;
   border: 1px solid #333;
-  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.9);
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.9);
 }
 
 .modal-buttons {
   display: flex;
-  gap: 12px;
+  gap: 10px;
   justify-content: center;
-  margin-top: 20px;
+  margin-top: 16px;
 }
 
 .modal-buttons button {
   flex: 1;
-  min-width: 120px;
+  min-width: 100px;
+  font-size: 13px;
 }
 
 input[type="text"] {
   width: 100%;
-  padding: 14px;
-  margin: 12px 0;
-  border-radius: 8px;
+  padding: 12px;
+  margin: 10px 0;
+  border-radius: 6px;
   border: 1px solid #333;
   background: #1a1a1a;
   color: white;
-  font-size: 15px;
+  font-size: 13px;
   transition: all 0.2s;
+  min-height: 44px;
 }
 
 input[type="text"]:focus {
@@ -441,9 +466,9 @@ input[type="text"]::placeholder {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  margin-bottom: 20px;
+  margin-bottom: 16px;
   flex-wrap: wrap;
-  gap: 10px;
+  gap: 8px;
 }
 
 .header-title {
@@ -451,8 +476,9 @@ input[type="text"]::placeholder {
   text-align: center;
   margin: 0;
   color: white;
-  font-size: 20px;
+  font-size: 16px;
   font-weight: 600;
+  line-height: 1.2;
 }
 
 /* Estilos para la dificultad */
@@ -473,152 +499,237 @@ input[type="text"]::placeholder {
 
 /* Mejorar visualización de configuración */
 .config-resumen-item {
-  margin-bottom: 8px;
-  padding: 5px 0;
+  margin-bottom: 6px;
+  padding: 4px 0;
   border-bottom: 1px solid #222;
+  font-size: 13px;
 }
 
 .config-resumen-item:last-child {
   border-bottom: none;
 }
 
-/* Responsive improvements */
-@media (min-width: 768px) {
-  body {
-      align-items: center;
-      padding: 20px;
-  }
-
-  .screen {
-      padding: 25px;
-      margin: 10px auto;
-  }
-
-  button {
-      width: auto;
-      min-width: 150px;
-      margin: 10px 5px;
-  }
-
-  .btn-atras {
-      min-width: 80px;
-  }
-
-  .row-buttons {
-      flex-direction: row;
-      justify-content: center;
-  }
-
-  .row-buttons button {
-      min-width: 180px;
-  }
-
-  .modal-buttons button {
-      min-width: 140px;
-  }
-
-  .titulo-app {
-      font-size: 32px;
-      margin-bottom: 30px;
-  }
-
-  .palabra-display {
-      font-size: 42px;
-      padding: 25px;
-      min-height: 120px;
-  }
-
-  .nombre-jugador-display {
-      font-size: 32px;
-  }
-
-  .impostor-nombre {
-      font-size: 32px;
-  }
-
-  .impostor-titulo {
-      font-size: 18px;
-  }
-
-  .header-title {
-      font-size: 22px;
-  }
+/* ===== LOGO DE FONDO ===== */
+#logo-fondo {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  pointer-events: none;
+  z-index: 1;
+  opacity: 0.05;
+  display: none;
 }
 
-/* Para pantallas muy pequeñas */
-@media (max-width: 360px) {
+#logo-fondo img {
+  width: 250px;
+  height: 250px;
+  max-width: 80%;
+  max-height: 80%;
+}
+
+/* ===== MEJORAS PARA MÓVILES ===== */
+
+/* Para pantallas pequeñas */
+@media (max-width: 480px) {
+  html {
+    font-size: 13px;
+  }
+  
   .screen {
-      padding: 15px;
-      border-radius: 10px;
+    padding: 14px;
+    border-radius: 8px;
+    margin: 6px 0;
   }
-
+  
   .titulo-app {
-      font-size: 24px;
-      margin-bottom: 20px;
+    font-size: 20px;
+    margin-bottom: 16px;
   }
-
+  
   .palabra-display {
-      font-size: 28px;
-      padding: 15px;
-      min-height: 90px;
-      margin: 20px 0;
+    font-size: clamp(18px, 5vw, 28px);
+    padding: 14px;
+    min-height: 80px;
+    margin: 16px 0;
   }
-
+  
   button {
-      padding: 14px 16px;
-      font-size: 14px;
+    padding: 11px 14px;
+    font-size: 12px;
+    min-height: 42px;
   }
-
+  
   .btn-atras {
-      padding: 8px 12px;
-      font-size: 13px;
-      min-width: 60px;
+    padding: 7px 10px;
+    font-size: 11px;
+    min-width: 55px;
+    min-height: 34px;
   }
-
-  .nombre-jugador-display {
-      font-size: 24px;
-      margin: 15px 0;
-  }
-
-  .impostor-nombre {
-      font-size: 24px;
-  }
-
+  
   .card.opcion {
-      padding: 15px;
+    padding: 12px;
   }
-
+  
   .card.opcion h3 {
-      font-size: 16px;
+    font-size: 14px;
   }
-
+  
   .card.opcion p {
-      font-size: 13px;
+    font-size: 11px;
   }
-
+  
+  .nombre-jugador-display {
+    font-size: clamp(16px, 4.5vw, 22px);
+    margin: 12px 0;
+  }
+  
+  .impostor-nombre {
+    font-size: clamp(18px, 4.5vw, 22px);
+  }
+  
   .info-jugador,
   .revelar-container,
   .jugador-input {
-      padding: 15px;
+    padding: 12px;
+  }
+  
+  .header-title {
+    font-size: 15px;
+  }
+  
+  .info-detalle .info-item {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 4px;
+  }
+  
+  .info-detalle .info-label {
+    margin-right: 0;
+    font-size: 12px;
+  }
+  
+  .info-detalle .info-valor {
+    font-size: 13px;
+    text-align: left;
+  }
+  
+  /* Ajustar inputs para iOS */
+  input[type="text"],
+  .select-config {
+    font-size: 16px; /* iOS no escala fuentes menores a 16px */
+    padding: 12px 10px;
+  }
+}
+
+/* Para pantallas muy pequeñas (iPhone SE, etc) */
+@media (max-width: 360px) {
+  html {
+    font-size: 12px;
+  }
+  
+  body {
+    padding: 8px;
+  }
+  
+  .screen {
+    padding: 12px;
+  }
+  
+  .titulo-app {
+    font-size: 18px;
+    margin-bottom: 14px;
+  }
+  
+  .palabra-display {
+    font-size: clamp(16px, 4vw, 24px);
+    padding: 12px;
+    min-height: 70px;
+  }
+  
+  .row {
+    gap: 8px;
+  }
+  
+  .modal-box {
+    padding: 16px;
+    max-width: 300px;
+  }
+  
+  /* Asegurar que los botones sean táctiles */
+  button, .btn-atras {
+    min-height: 44px;
+  }
+}
+
+/* Para tablets y pantallas grandes */
+@media (min-width: 768px) {
+  html {
+    font-size: 15px;
+  }
+  
+  body {
+    align-items: center;
+    padding: 20px;
+  }
+
+  .screen {
+    padding: 22px;
+    margin: 10px auto;
+  }
+
+  button {
+    width: auto;
+    min-width: 140px;
+    margin: 8px 4px;
+  }
+
+  .btn-atras {
+    min-width: 70px;
+  }
+
+  .row-buttons {
+    flex-direction: row;
+    justify-content: center;
+  }
+
+  .row-buttons button {
+    min-width: 160px;
+  }
+
+  .modal-buttons button {
+    min-width: 120px;
+  }
+
+  .titulo-app {
+    font-size: 26px;
+    margin-bottom: 25px;
+  }
+
+  .palabra-display {
+    font-size: 34px;
+    padding: 22px;
+    min-height: 110px;
+  }
+
+  .nombre-jugador-display {
+    font-size: 26px;
+  }
+
+  .impostor-nombre {
+    font-size: 26px;
+  }
+
+  .impostor-titulo {
+    font-size: 16px;
   }
 
   .header-title {
-      font-size: 18px;
-  }
-
-  .info-detalle .info-item {
-      flex-direction: column;
-      align-items: flex-start;
-      gap: 5px;
-  }
-
-  .info-detalle .info-label {
-      margin-right: 0;
-      font-size: 14px;
-  }
-
-  .info-detalle .info-valor {
-      font-size: 15px;
+    font-size: 18px;
   }
 }
 
@@ -636,23 +747,28 @@ button:focus, .card.opcion:focus {
 /* Mejorar la experiencia táctil */
 @media (hover: none) and (pointer: coarse) {
   button:hover {
-      transform: none;
-      background: #222222;
+    transform: none;
+    background: #222222;
   }
 
   .card.opcion:hover {
-      transform: none;
-      background: #1a1a1a;
+    transform: none;
+    background: #1a1a1a;
   }
 
   button:active {
-      background: #2a2a2a;
-      transform: scale(0.98);
+    background: #2a2a2a;
+    transform: scale(0.98);
   }
 
   .card.opcion:active {
-      background: #222;
-      transform: scale(0.98);
+    background: #222;
+    transform: scale(0.98);
+  }
+  
+  /* Tamaños táctiles mínimos */
+  button, .btn-atras, .select-config, input[type="text"] {
+    min-height: 44px;
   }
 }
 
@@ -680,23 +796,12 @@ button:focus, .card.opcion:focus {
   to { transform: translate(-50%, -50%) rotate(360deg); }
 }
 
-/* ===== LOGO DE FONDO ===== */
-#logo-fondo {
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  pointer-events: none;
-  z-index: 1;
-  opacity: 0.05;
-  display: none; /* Oculto por defecto */
-}
-
-#logo-fondo img {
-  width: 300px;
-  height: 300px;
+/* Prevenir zoom en inputs iOS */
+@media screen and (max-width: 767px) {
+  input[type="text"],
+  .select-config {
+    font-size: 16px;
+    transform: scale(0.98);
+    transform-origin: left;
+  }
 }
