@@ -671,24 +671,22 @@ button:focus, .card.opcion:focus {
   to { transform: translate(-50%, -50%) rotate(360deg); }
 }
 
-/* Logo de fondo */
+/* ===== LOGO DE FONDO ===== */
 #logo-fondo {
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  pointer-events: none;
-  z-index: -1;
-  opacity: 0.07;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    pointer-events: none;
+    z-index: -1;
+    opacity: 0.1;
 }
 
 #logo-fondo img {
-  width: 60%;
-  max-width: 400px;
-  height: auto;
+    width: 300px;
+    height: 300px;
 }
-
