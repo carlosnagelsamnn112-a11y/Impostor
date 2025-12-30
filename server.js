@@ -1,21 +1,9 @@
 const express = require("express");
-const path = require("path");
 const app = express();
 const http = require("http").createServer(app);
 const io = require("socket.io")(http);
 
-// Configuración para servir archivos estáticos
 app.use(express.static(__dirname));
-
-// Ruta principal que sirve index.html
-app.get("/", (req, res) => {
-    res.sendFile(path.join(__dirname, "index.html"));
-});
-
-// Ruta para todos los demás archivos
-app.get("*", (req, res) => {
-    res.sendFile(path.join(__dirname, req.path));
-});
 
 const salas = {};
 const palabras = {
@@ -522,5 +510,4 @@ function asignarRolesAleatorios(sala) {
 const PORT = process.env.PORT || 5000;
 http.listen(PORT, () => {
     console.log(`Servidor listo en puerto ${PORT}`);
-    console.log(`Accede a: http://localhost:${PORT}`);
 });
