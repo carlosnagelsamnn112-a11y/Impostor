@@ -45,56 +45,111 @@ body {
   background: linear-gradient(90deg, transparent, #444, transparent);
 }
 
+/* ========== LOGO Y PANTALLA DE CARGA ========== */
+#pantalla-carga {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 90vh;
+}
+
+.logo-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  max-width: 400px;
+}
+
+.logo-impostor {
+  width: 180px;
+  height: 180px;
+  margin-bottom: 25px;
+  animation: logo-pulse 2s infinite alternate;
+  filter: drop-shadow(0 0 10px rgba(255, 255, 255, 0.1));
+}
+
+@keyframes logo-pulse {
+  0% {
+    transform: scale(1);
+    opacity: 0.9;
+  }
+  100% {
+    transform: scale(1.05);
+    opacity: 1;
+  }
+}
+
+.logo-text {
+  font-size: 32px;
+  font-weight: 300;
+  letter-spacing: 2px;
+  margin-bottom: 30px;
+  color: white;
+  text-transform: uppercase;
+  text-shadow: 0 0 10px rgba(255, 255, 255, 0.3);
+}
+
+.loading-bar {
+  width: 100%;
+  height: 6px;
+  background: #222;
+  border-radius: 3px;
+  overflow: hidden;
+  margin-top: 10px;
+}
+
+.loading-progress {
+  height: 100%;
+  width: 0%;
+  background: linear-gradient(90deg, #00ccff, #4CAF50);
+  border-radius: 3px;
+  animation: loading 2s ease-in-out infinite;
+}
+
+@keyframes loading {
+  0% {
+    width: 0%;
+    transform: translateX(-100%);
+  }
+  50% {
+    width: 100%;
+    transform: translateX(0%);
+  }
+  100% {
+    width: 0%;
+    transform: translateX(100%);
+  }
+}
+
+/* Logo en la pantalla principal */
+.logo-header {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  margin-bottom: 25px;
+}
+
+.logo-small {
+  width: 60px;
+  height: 60px;
+  margin-bottom: 10px;
+  opacity: 0.9;
+}
+
 .titulo-app {
   font-size: 28px;
   margin-top: 0;
-  margin-bottom: 25px;
+  margin-bottom: 10px;
   color: white;
   font-weight: 300;
   letter-spacing: 1px;
   text-transform: uppercase;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 15px;
-  flex-wrap: wrap;
 }
 
-/* Estilos para el LOGO */
-.logo-header {
-  width: 60px;
-  height: 60px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.logo-header img {
-  width: 100%;
-  height: auto;
-  filter: invert(1); /* Hace que el logo negro se vea blanco en fondos oscuros */
-  opacity: 0.9;
-  transition: opacity 0.2s;
-}
-
-.logo-medium {
-  width: 40px;
-  height: 40px;
-  display: inline-block;
-  vertical-align: middle;
-  margin: 0 auto;
-}
-
-.logo-medium img {
-  width: 100%;
-  height: auto;
-  filter: invert(1);
-  opacity: 0.7;
-}
-
-/* Favicon styling */
-link[rel="icon"] {
-  border-radius: 6px;
+.main-menu {
+  margin-top: 15px;
 }
 
 button {
@@ -527,6 +582,20 @@ input[type="text"]::placeholder {
       margin: 10px auto;
   }
 
+  .logo-impostor {
+      width: 220px;
+      height: 220px;
+  }
+
+  .logo-text {
+      font-size: 36px;
+  }
+
+  .logo-small {
+      width: 70px;
+      height: 70px;
+  }
+
   button {
       width: auto;
       min-width: 150px;
@@ -552,17 +621,6 @@ input[type="text"]::placeholder {
 
   .titulo-app {
       font-size: 32px;
-      margin-bottom: 30px;
-  }
-
-  .logo-header {
-      width: 70px;
-      height: 70px;
-  }
-
-  .logo-medium {
-      width: 50px;
-      height: 50px;
   }
 
   .palabra-display {
@@ -595,19 +653,20 @@ input[type="text"]::placeholder {
       border-radius: 10px;
   }
 
-  .titulo-app {
-      font-size: 24px;
+  .logo-impostor {
+      width: 140px;
+      height: 140px;
+      margin-bottom: 15px;
+  }
+
+  .logo-text {
+      font-size: 26px;
       margin-bottom: 20px;
   }
 
-  .logo-header {
-      width: 50px;
-      height: 50px;
-  }
-
-  .logo-medium {
-      width: 35px;
-      height: 35px;
+  .titulo-app {
+      font-size: 24px;
+      margin-bottom: 20px;
   }
 
   .palabra-display {
